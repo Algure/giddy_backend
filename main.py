@@ -8,7 +8,8 @@ import os
 from flask import Flask, jsonify, request
 # from database import User, UserSchema, Verification
 from sqlalchemy import Column, Integer, Float, String, DateTime
-from flask_apscheduler import APScheduler
+from apscheduler.schedulers.background import BackgroundScheduler
+
 
 app = Flask(__name__)
 
@@ -16,7 +17,15 @@ db = SQLAlchemy(app)
 ma = Marshmallow(app)
 basedir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///'+ os.path.join(basedir, 'planets.db')
+app.config['SCHEDULER_API_ENABLED'] = True
+
+scheduler = BackgroundScheduler()
+
 migrate = Migrate(app, db)
+
+@app.before_first_request
+def initialises():
+    scheduler.start()
 
 
 @app.cli.command('db_create')
@@ -106,6 +115,7 @@ def signup():
     return jsonify(UserSchema().dump(user)), 201
 
 # Create initaiate password retrieval
+@app.route('/jobtest', methods  = ['POST'])
 def init_passretrieval():
     email = request.json['email']
 
@@ -128,6 +138,18 @@ def init_passretrieval():
     )
     db.session.add(verification)
     db.session.commit()
+
+    scheduler.add_job(destroyVerificationEvent, 'interval', id=code, seconds=2, args = [code])
+
+    return jsonify('done')
+
+def destroyVerificationEvent(code:str):
+    print(f'job ran: {code}')
+    try:
+        scheduler.remove_job(code)
+    except:
+        print(f'job: {code} does not exist')
+
 
 # TODO: Create verify password retrieval code
 # TODO: Create retrieve password endpoint
