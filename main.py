@@ -60,7 +60,7 @@ def db_drop():
 # Create login with password
 @app.route('/')
 def test():
-    return  jsonify('welcome to Giddy')
+    return  'welcome to Giddy'
 
  # Create login with password
 @app.route('/login', methods= ['POST'])
