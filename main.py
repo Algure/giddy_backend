@@ -1,6 +1,8 @@
 import datetime
 import hashlib
 import random
+
+from decouple import config
 from flask_marshmallow import Marshmallow
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -9,19 +11,36 @@ from flask import Flask, jsonify, request
 # from database import User, UserSchema, Verification
 from sqlalchemy import Column, Integer, Float, String, DateTime
 from apscheduler.schedulers.background import BackgroundScheduler
-
+from flask_mail import Mail, Message
 
 app = Flask(__name__)
 
-db = SQLAlchemy(app)
-ma = Marshmallow(app)
 basedir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///'+ os.path.join(basedir, 'planets.db')
 app.config['SCHEDULER_API_ENABLED'] = True
+# app.config['MAIL_SERVER']= str(config('MAIL_SERVER'))
+# app.config['MAIL_PORT'] = config('MAIL_PORT')
+# app.config['MAIL_USERNAME'] = str(config('MAIL_USERNAME'))
+# app.config['MAIL_PASSWORD'] = str(config('MAIL_PASSWORD'))
+# app.config['MAIL_USE_TLS'] = True
+# app.config['MAIL_USE_SSL'] = False
+app.config['MAIL_SERVER']='smtp.mailtrap.io'
+app.config['MAIL_PORT'] = 2525
+app.config['MAIL_USERNAME'] = 'f702b77be1a9e9'
+app.config['MAIL_PASSWORD'] = '666dd4298133e8'
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USE_SSL'] = False
+
+db = SQLAlchemy(app)
+ma = Marshmallow(app)
+mail = Mail(app)
 
 scheduler = BackgroundScheduler()
 
 migrate = Migrate(app, db)
+
+
+authentication_minutes = 50
 
 @app.before_first_request
 def initialises():
@@ -139,15 +158,34 @@ def init_passretrieval():
     db.session.add(verification)
     db.session.commit()
 
-    scheduler.add_job(destroyVerificationEvent, 'interval', id=code, seconds=2, args = [code])
-
+    scheduler.add_job(destroyVerificationEvent, 'interval', id=code, minutes=authentication_minutes, args = [code])
+    send_email(email,
+               f'Hello {userlist[0].first_name},\n\nSorry about your password. Continue your password retrieval with this code.\n\n'
+               f' {code}.\n\n'
+               f'\nThis code would expire in the next {authentication_minutes} minutes.')
     return jsonify('done')
+
+def send_email(email:str, message:str):
+    emailsend = config('AUTH_EMAIL')
+    print(f'sending email: {emailsend} {email}')
+    msg = Message( body= message,
+        sender= emailsend,
+        recipients=[email]
+    )
+    mail.send(msg)
 
 def destroyVerificationEvent(code:str):
     print(f'job ran: {code}')
     try:
+        verification = db.session.query(Verification).filter_by(code=code).first()
+        if verification is not None:
+            print('detected verification')
+
+            db.session.delete(verification)
+            db.session.commit()
+
         scheduler.remove_job(code)
-    except:
+    except  Exception:
         print(f'job: {code} does not exist')
 
 
