@@ -90,6 +90,7 @@ def login():
 
     return jsonify(UserSchema().dump(userlist[0]))
 
+
 @app.route('/signup', methods = ['POST'])
 def signup():
     if(request.headers.get('Content-Type') != 'application/json'):
@@ -134,7 +135,7 @@ def signup():
     return jsonify(UserSchema().dump(user)), 201
 
 # Create initaiate password retrieval
-@app.route('/jobtest', methods  = ['POST'])
+@app.route('/initpassretrieval', methods  = ['POST'])
 def init_passretrieval():
     email = request.json['email']
 
@@ -162,13 +163,62 @@ def init_passretrieval():
     send_email(email,
                f'Hello {userlist[0].first_name},\n\nSorry about your password. Continue your password retrieval with this code.\n\n'
                f' {code}.\n\n'
-               f'\nThis code would expire in the next {authentication_minutes} minutes.')
+               f'\nThis code would expire in the next {authentication_minutes} minutes.', subject='Giddy Authentication')
     return jsonify('done')
 
-def send_email(email:str, message:str):
+
+@app.route('/authret/code/<int:code>', methods=['POST'])
+def confirm_retrieval_code(code):
+    code = str(code)
+    print(f'code: {code}')
+    if code is None or len(code)!=6:
+        return jsonify(message='Invalid code'), 404
+
+    verification = db.session.query(Verification).filter_by(code=code).first()
+    if verification is None:
+        return jsonify(message='Code not found'), 404
+
+    user = db.session.query(User).filter_by(id=verification.user_id).first()
+    if user is None:
+        return jsonify(message='User not found'), 404
+
+    usermail = user.email
+
+    return jsonify({'valid': True, 'email':usermail})
+
+
+@app.route('/password/change', methods = ['POST'])
+def change_password():
+    code = request.json['code']
+    password = request.json['password']
+
+    if code is None or len(code)!=6:
+        return jsonify(message='Invalid code'), 404
+
+    verification = db.session.query(Verification).filter_by(code=code).first()
+    if verification is None:
+        return jsonify(message='Code not found'), 404
+
+    user = User.query.get(verification.user_id)
+    if user is None:
+        return jsonify(message='User not found'), 404
+
+    if password is None or len(str(password).strip()) < 6 :
+        return jsonify('password length must be less than 6'), 400
+
+    user.password = encrypt(password)
+    db.session.delete(verification)
+    db.session.commit()
+
+    return jsonify(message = 'done')
+
+
+
+
+def send_email(email:str, message:str,  subject:str = ''):
     emailsend = config('AUTH_EMAIL')
     print(f'sending email: {emailsend} {email}')
-    msg = Message( body= message,
+    msg = Message( subject=subject, body= message,
         sender= emailsend,
         recipients=[email]
     )
