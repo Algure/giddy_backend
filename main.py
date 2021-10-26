@@ -58,6 +58,11 @@ def db_drop():
     print('Database dropped')
 
 # Create login with password
+@app.route('/')
+def test():
+    return  jsonify('welcome to Giddy')
+
+ # Create login with password
 @app.route('/login', methods= ['POST'])
 def login():
     if(request.headers.get('Content-Type') != 'application/json'):
@@ -213,8 +218,6 @@ def change_password():
     return jsonify(message = 'done')
 
 
-
-
 def send_email(email:str, message:str,  subject:str = ''):
     emailsend = config('AUTH_EMAIL')
     print(f'sending email: {emailsend} {email}')
@@ -223,6 +226,7 @@ def send_email(email:str, message:str,  subject:str = ''):
         recipients=[email]
     )
     mail.send(msg)
+
 
 def destroyVerificationEvent(code:str):
     print(f'job ran: {code}')
@@ -239,16 +243,15 @@ def destroyVerificationEvent(code:str):
         print(f'job: {code} does not exist')
 
 
-# TODO: Create verify password retrieval code
-# TODO: Create retrieve password endpoint
-
 def gen_random_code(str_size):
     allowed_chars='0123456789'
     return ''.join(random.choice(allowed_chars) for x in range(str_size))
 
+
 def random_string_generator(str_size):
     allowed_chars='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.,;!@#$%^&*_?><0123456789'
     return ''.join(random.choice(allowed_chars) for x in range(str_size))
+
 
 def encrypt(raw_password, salt='b57b5c1c5ae168997a33b908f3bb315f'):
     # generate new salt, and hash a password
