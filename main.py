@@ -490,7 +490,7 @@ def update_document():
     elif user.admin_stat == 0:
         return jsonify(message='Unauthorised user'), 404
 
-    document = db.session.query(Video).filter_by(id = doc_id).first()
+    document = db.session.query(Document).filter_by(id = doc_id).first()
     if document is None:
         return jsonify(message='Document not found'), 404
 
@@ -523,7 +523,7 @@ def delete_document():
     elif user.admin_stat == 0:
         return jsonify(message='Unauthorised user'), 404
 
-    document = db.session.query(Video).filter_by(id=doc_id).first()
+    document = db.session.query(Document).filter_by(id=doc_id).first()
     if document is None:
             return jsonify(message='Document not found'), 404
 
@@ -634,7 +634,7 @@ def create_cbt():
 
     cbt = CBT(name = str(name),
                   data = str(data) if data is not None else '',
-                  course_id = str(course_id) if course_id is not None,
+                  course_id = str(course_id) if course_id is not None else '',
                   clicks = 0)
 
     db.session.add(cbt)
@@ -647,6 +647,34 @@ def create_cbt():
             db.session.commit()
         except:
             pass
+    return jsonify(message = 'done')
+
+
+@app.route('/cbt/update', methods = ['POST'])
+def update_cbt():
+    token = request.json['token']
+    id = request.json['id']
+    name = request.json['name']
+    data = request.json['data']
+
+    user = db.session.query(User).filter_by(token = token).first()
+    if user is None :
+        return jsonify(message='User not found'), 404
+    elif user.admin_stat == 0:
+        return jsonify(message='Unauthorised user'), 400
+
+    cbt = db.session.query(CBT).filter_by(id = id).first()
+    if cbt is None:
+        return jsonify(message='CBT not found'), 404
+
+    if name is not None:
+        cbt.name = str(name)
+
+    if data is not None:
+        cbt.data = str(data)
+
+    db.session.commit()
+
     return jsonify(message = 'done')
 
 
