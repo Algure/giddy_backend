@@ -1080,6 +1080,29 @@ def update_calevent():
     return jsonify(message = 'done')
 
 
+@app.route('/calendar/event/delete', methods = ['POST'])
+def delete_calevent():
+    token = request.json['token']
+    id = request.json['id']
+
+
+    if token is None:
+        return jsonify(message='Invalid request: body must contain: token.'), 400
+
+    user = db.session.query(User).filter_by(token = token).first()
+    if user is None :
+        return jsonify(message='User not found'), 404
+
+    calevent = db.session.query(CalenderEvent).filter_by(id=id).first()
+    if calevent is None :
+        return jsonify(message='Event not found'), 404
+
+    db.session.delete(calevent)
+    db.session.commit()
+
+    return jsonify(message = 'done') , 204
+
+
 def send_email(email:str, message:str,  subject:str = ''):
     emailsend = config('AUTH_EMAIL')
     print(f'sending email: {emailsend} {email}')
