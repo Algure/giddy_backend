@@ -900,6 +900,11 @@ def fetch_user_inbox():
 
     inbox = db.session.query(News).filter(user_id = str(user.id)).all()
 
+    # TODO: Confirm client satisfaction
+    for news in inbox:
+        db.session.delete(news)
+    db.session.commit()
+
     return jsonify(NewsSchema().dump(inbox,many=True))
 
 
