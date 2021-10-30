@@ -1134,10 +1134,10 @@ def fetch_latest_news():
                 # return jsonify(message='Invalid request format: `date_of_activity`.'), 400
                 pass
 
-    latest_news = db.session.query(CalenderEvent).filter(CalenderEvent.user_id == str(user.id)).\
+    calendar = db.session.query(CalenderEvent).filter(CalenderEvent.user_id == str(user.id)).\
         filter(CalenderEvent.date_of_activity >= start_time).filter(CalenderEvent.date_of_activity <= end_time).all()
 
-    return jsonify(NewsSchema().dump(latest_news,many=True))
+    return jsonify(CalendarSchema().dump(calendar,many=True))
 
 
 def send_email(email:str, message:str,  subject:str = ''):
@@ -1336,6 +1336,10 @@ class LoginEvent(db.Model):
 class UserSchema(ma.Schema):
     class Meta:
         fields = ('id', 'first_name', 'last_name', 'email','admin_stat','token')
+
+class CalendarSchema( ma.Schema):
+    class Meta:
+        fields = ['id', 'date_created', 'date_of_activity', 'activity']
 
 class AdSchema( ma.Schema):
     class Meta:
