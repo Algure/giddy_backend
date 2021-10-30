@@ -877,8 +877,30 @@ def delete_news():
     return  jsonify(message='done'), 204
 
 
+@app.route('/news/fetch-latest', methods= ['POST', 'GET'])
+def fetch_latest_news():
+    token = request.json['token']
+
+    user = db.session.query(User).filter_by(token=token).first()
+    if user is None:
+        return jsonify(message='User not found'), 404
+
+    latest_news = db.session.query(News).order_by(News.id.desc()).limit(public_query_limit).all()
+
+    return jsonify(NewsSchema().dump(latest_news,many=True))
 
 
+@app.route('/news/inbox', methods= ['POST', 'GET'])
+def fetch_user_inbox():
+    token = request.json['token']
+
+    user = db.session.query(User).filter_by(token=token).first()
+    if user is None:
+        return jsonify(message='User not found'), 404
+
+    inbox = db.session.query(News).filter(user_id = str(user.id)).all()
+
+    return jsonify(NewsSchema().dump(inbox,many=True))
 
 
 def send_email(email:str, message:str,  subject:str = ''):
@@ -1081,6 +1103,10 @@ class UserSchema(ma.Schema):
 class CBTSchema( ma.Schema):
     class Meta:
         fields = ['id', 'name', 'description']
+
+class NewsSchema( ma.Schema):
+    class Meta:
+        fields = ['id', 'title', 'description', 'user_id', 'timestamp', 'extras']
 
 class DocumentSchema( ma.Schema):
     class Meta:
