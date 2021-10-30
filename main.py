@@ -609,7 +609,7 @@ def fetch_course_documents():
     if user is None:
         return jsonify(message='User not found'), 404
 
-    docs = db.session.query(Document).filter_by(course_id = course_id).limit(public_query_limit).all()
+    docs = db.session.query(Document).filter_by(course_id = course_id).all()
 
     return jsonify(DocumentSchema().dump(docs,many=True))
 
@@ -620,6 +620,7 @@ def create_cbt():
     token = request.json['token']
     course_id = request.json['course_id']
     name = request.json['name']
+    description = request.json['description']
     data = request.json['data']
 
     if name is None:
@@ -637,6 +638,7 @@ def create_cbt():
 
     cbt = CBT(name = str(name),
                   data = str(data) if data is not None else '',
+                  description = str(description) if description is not None else '',
                   course_id = str(course_id) if course_id is not None else '',
                   clicks = 0)
 
@@ -658,6 +660,7 @@ def update_cbt():
     token = request.json['token']
     id = request.json['id']
     name = request.json['name']
+    description = request.json['description']
     data = request.json['data']
 
     user = db.session.query(User).filter_by(token = token).first()
@@ -675,6 +678,9 @@ def update_cbt():
 
     if data is not None:
         cbt.data = str(data)
+
+    if description is not None:
+        cbt.description = str(description)
 
     db.session.commit()
 
@@ -703,7 +709,7 @@ def delete_cbt():
 
 
 @app.route('/course/cbt', methods= ['POST', 'GET'])
-def fetch_course_documents():
+def fetch_course_cbts():
     token = request.json['token']
     course_id = request.json['course_id']
 
@@ -711,9 +717,35 @@ def fetch_course_documents():
     if user is None:
         return jsonify(message='User not found'), 404
 
-    cbts = db.session.query(CBT).filter_by(course_id = course_id).limit(public_query_limit).all()
+    cbts = db.session.query(CBT).filter_by(course_id = course_id).all()
 
-    return jsonify(CBTSchema().dump(docs,many=True))
+    return jsonify(CBTSchema().dump(cbts,many=True))
+
+
+@app.route('/cbt/fetch-trending', methods= ['POST', 'GET'])
+def fetch_trending_cbts():
+    token = request.json['token']
+
+    user = db.session.query(User).filter_by(token=token).first()
+    if user is None:
+        return jsonify(message='User not found'), 404
+
+    cbts = db.session.query(CBT).order_by(CBT.clicks.desc()).limit(public_query_limit).all()
+
+    return jsonify(CBTSchema().dump(cbts,many=True))
+
+
+@app.route('/cbt/fetch-latest', methods= ['POST', 'GET'])
+def fetch_latest_cbts():
+    token = request.json['token']
+
+    user = db.session.query(User).filter_by(token=token).first()
+    if user is None:
+        return jsonify(message='User not found'), 404
+
+    latest_cbts = db.session.query(CBT).order_by(CBT.id.desc()).limit(public_query_limit).all()
+
+    return jsonify(CBTSchema().dump(latest_cbts,many=True))
 
 
 def send_email(email:str, message:str,  subject:str = ''):
@@ -846,6 +878,7 @@ class CBT:
     __tablename__ = 'CBT'
     id = Column(Integer, primary_key= True)
     name = Column(String)
+    description = Column(String)
     data = Column(String)
     course_id = Column(String)
     clicks = Column(Integer)
@@ -911,6 +944,10 @@ class LoginEvent(db.Model):
 class UserSchema(ma.Schema):
     class Meta:
         fields = ('id', 'first_name', 'last_name', 'email','admin_stat','token')
+
+class CBTSchema( ma.Schema):
+    class Meta:
+        fields = ['id', 'name', 'description']
 
 class DocumentSchema( ma.Schema):
     class Meta:
