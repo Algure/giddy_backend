@@ -224,24 +224,24 @@ def create_video():
     course_id = request.json['course_id']
 
     if name is None or  url is None or size is None or time_in_secs is None or token is None:
-        return jsonify(message='Invalid request: body must contain: name, url, time_in_secs and token'), 404
+        return jsonify(message='Invalid request: body must contain: name, url, time_in_secs and token'), 400
 
     try:
         time_in_secs = int(time_in_secs)
     except :
-        return jsonify(message=' Invalid time_in_secs parameter'), 404
+        return jsonify(message=' Invalid time_in_secs parameter'), 400
 
     user = db.session.query(User).filter_by(token = token).first()
     if user is None :
         return jsonify(message='User not found'), 404
     elif user.admin_stat == 0:
-        return jsonify(message='Unauthorised user'), 404
+        return jsonify(message='Unauthorised user'), 400
 
     if course_id is None:
         course_id = ''
 
     if not str(url).startswith('http'):
-        return jsonify(message='Invalid media url'), 404
+        return jsonify(message='Invalid media url'), 400
 
     video = Video(name = str(name),
                   url = str(url),
@@ -259,7 +259,7 @@ def create_video():
     if course_id != '':
         try:
             course = db.session.query(Course).filter_by(id=course_id).first()
-            course.videos.append(course)
+            course.videos.append(video)
             db.session.commit()
         except:
             pass
@@ -281,7 +281,7 @@ def update_video():
     if user is None :
         return jsonify(message='User not found'), 404
     elif user.admin_stat == 0:
-        return jsonify(message='Unauthorised user'), 404
+        return jsonify(message='Unauthorised user'), 400
 
     video = db.session.query(Video).filter_by(id = video_id).first()
     if video is None:
@@ -324,7 +324,7 @@ def delete_video():
     if user is None:
         return jsonify(message='User not found'), 404
     elif user.admin_stat == 0:
-        return jsonify(message='Unauthorised user'), 404
+        return jsonify(message='Unauthorised user'), 400
 
     video = db.session.query(Video).filter_by(id=video_id).first()
     if video is None:
@@ -398,8 +398,11 @@ def download_video():
     video = db.session.query(Video).filter_by(id = video_id).first()
     if video is None:
         return jsonify(message='Video not found'), 404
-
-    click = int(video.clicks) if int(video.clicks) is not None else 0
+    click = 0
+    try:
+        click = int(video.clicks)
+    except:
+        pass
     click += 1
     video.clicks = click
 
@@ -426,7 +429,7 @@ def create_document():
     extras = request.json['extras']
 
     if name is None or  url is None or size is None or doctype is None or token is None:
-        return jsonify(message='Invalid request: body must contain: name, url, time_in_secs and token'), 404
+        return jsonify(message='Invalid request: body must contain: name, url, time_in_secs and token'), 400
 
     if len(doctype) == 0:
         return jsonify(message=' Invalid  document type [doctype]'), 400
@@ -548,7 +551,12 @@ def download_document():
     if document is None:
         return jsonify(message='Document not found'), 404
 
-    click = int(document.clicks) if int(document.clicks) is not None else 0
+    click = 0
+    try:
+        click = int(document.clicks)
+    except:
+        pass
+
     click += 1
     document.clicks = click
 
@@ -571,26 +579,13 @@ def fetch_trending_documents():
     if user is None:
         return jsonify(message='User not found'), 404
 
-    latest_docs = db.session.query(Document).order_by(Document.clicks.desc()).limit(public_query_limit).all()
-
-    return jsonify(DocumentSchema().dump(latest_docs,many=True))
-
-
-@app.route('/document/fetch-trending', methods= ['POST', 'GET'])
-def fetch_trending_documents():
-    token = request.json['token']
-
-    user = db.session.query(User).filter_by(token=token).first()
-    if user is None:
-        return jsonify(message='User not found'), 404
-
     docs = db.session.query(Document).order_by(Document.clicks.desc()).limit(public_query_limit).all()
 
     return jsonify(DocumentSchema().dump(docs,many=True))
 
 
 @app.route('/document/fetch-latest', methods= ['POST', 'GET'])
-def fetch_trending_documents():
+def fetch_latest_documents():
     token = request.json['token']
 
     user = db.session.query(User).filter_by(token=token).first()
@@ -601,6 +596,58 @@ def fetch_trending_documents():
 
     return jsonify(DocumentSchema().dump(latest_docs,many=True))
 
+
+@app.route('/course/document', methods= ['POST', 'GET'])
+def fetch_course_documents():
+    token = request.json['token']
+    course_id = request.json['course_id']
+
+    user = db.session.query(User).filter_by(token=token).first()
+    if user is None:
+        return jsonify(message='User not found'), 404
+
+    docs = db.session.query(Document).filter_by(course_id = course_id).limit(public_query_limit).all()
+
+    return jsonify(DocumentSchema().dump(docs,many=True))
+
+# CBT Functions
+
+@app.route('/cbt/create', methods = ['POST'])
+def create_cbt():
+    token = request.json['token']
+    course_id = request.json['course_id']
+    name = request.json['name']
+    data = request.json['data']
+
+    if name is None:
+        return jsonify(message='Invalid request: body must contain: name'), 400
+
+    user = db.session.query(User).filter_by(token = token).first()
+    if user is None :
+        return jsonify(message='User not found'), 404
+    elif user.admin_stat == 0:
+        return jsonify(message='Unauthorised user'), 404
+
+    if course_id is None:
+        course_id = ''
+
+
+    cbt = CBT(name = str(name),
+                  data = str(data) if data is not None else '',
+                  course_id = str(course_id) if course_id is not None,
+                  clicks = 0)
+
+    db.session.add(cbt)
+    db.session.commit()
+
+    if course_id != '':
+        try:
+            course = db.session.query(Course).filter_by(id=course_id).first()
+            course.cbt.append(cbt)
+            db.session.commit()
+        except:
+            pass
+    return jsonify(message = 'done')
 
 
 def send_email(email:str, message:str,  subject:str = ''):
@@ -734,6 +781,7 @@ class CBT:
     id = Column(Integer, primary_key= True)
     name = Column(String)
     data = Column(String)
+    course_id = Column(String)
     clicks = Column(Integer)
 
 
