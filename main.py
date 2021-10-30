@@ -9,21 +9,16 @@ from flask_migrate import Migrate
 import os
 from flask import Flask, jsonify, request
 # from database import User, UserSchema, Verification
-from sqlalchemy import Column, Integer, Float, String, DateTime
+from sqlalchemy import Column, Integer, Float, String, DateTime, Boolean
 from apscheduler.schedulers.background import BackgroundScheduler
 from flask_mail import Mail, Message
+from sqlalchemy.orm import relationship
 
 app = Flask(__name__)
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///'+ os.path.join(basedir, 'planets.db')
 app.config['SCHEDULER_API_ENABLED'] = True
-# app.config['MAIL_SERVER']= str(config('MAIL_SERVER'))
-# app.config['MAIL_PORT'] = config('MAIL_PORT')
-# app.config['MAIL_USERNAME'] = str(config('MAIL_USERNAME'))
-# app.config['MAIL_PASSWORD'] = str(config('MAIL_PASSWORD'))
-# app.config['MAIL_USE_TLS'] = True
-# app.config['MAIL_USE_SSL'] = False
 app.config['MAIL_SERVER']='smtp.mailtrap.io'
 app.config['MAIL_PORT'] = 2525
 app.config['MAIL_USERNAME'] = 'f702b77be1a9e9'
@@ -38,7 +33,6 @@ mail = Mail(app)
 scheduler = BackgroundScheduler()
 
 migrate = Migrate(app, db)
-
 
 authentication_minutes = 50
 
@@ -286,6 +280,115 @@ class User(db.Model):
     password = Column(String)
     token = Column(String)
     admin_stat = Column(Integer)
+    # Migration
+    reflink = Column(String)
+    video_bookmarks = relationship("Video", cascade="all, delete-orphan")
+    document_bookmarks = relationship("Document", cascade="all, delete-orphan")
+    course_bookmarks = relationship("Course", cascade="all, delete-orphan")
+    cbt_bookmarks = relationship("CBT", cascade="all, delete-orphan")
+
+
+class Video:
+    __tablename__ = 'Video'
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    url = Column(String)
+    size = Column(String)
+    time_in_secs = Column(Integer)
+    pic_url = Column(Integer)
+    course_id = Column(String)
+    uploader_id = Column(String)
+    clicks = Column(Integer)
+    extras = Column(String)
+
+
+class Course:
+    __tablename__ = 'Course'
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    dept = Column(String)
+    school = Column(String)
+    description = Column(String)
+    category = Column(String)
+    pic_url = Column(String)
+    uploader_id = Column(String)
+    is_published = Column(Boolean)
+    total_tutorials = Column(Integer)
+    total_past_questions = Column(Integer)
+    total_videos = Column(Integer)
+    clicks = Column(Integer)
+    extras = Column(String)
+    tutorials = relationship("Document", cascade="all, delete-orphan")
+    past_questions = relationship("Document", cascade="all, delete-orphan")
+    materials = relationship("Document", cascade="all, delete-orphan")
+    videos = relationship("Video", cascade="all, delete-orphan")
+    cbt = relationship("CBT", cascade="all, delete-orphan")
+
+
+class Document:
+    __tablename__ = 'Document'
+    id = Column(Integer, primary_key= True)
+    name = Column(String)
+    description = Column(String)
+    doctype = Column(String)
+    size = Column(String)
+    course_id = Column(String)
+    url = Column(String)
+    clicks = Column(Integer)
+    extras = Column(String)
+
+
+class CBT:
+    __tablename__ = 'CBT'
+    id = Column(Integer, primary_key= True)
+    name = Column(String)
+    data = Column(String)
+    clicks = Column(Integer)
+
+
+class News:
+    __tablename__ = 'News'
+    id = Column(Integer, primary_key= True)
+    title = Column(String)
+    description = Column(String)
+    user_id = Column(String)
+    timestamp = Column(DateTime)
+    extras = Column(String)
+
+
+class Advert:
+    __tablename__ = 'Advert'
+    id = Column(Integer, primary_key= True)
+    text = Column(String)
+    image_url = Column(String)
+    action_link = Column(String)
+    mode = Column(String)
+    timestamp = Column(DateTime)
+
+
+class CalenderEvent:
+    __tablename__ = 'CalenderEvent'
+    id = Column(Integer, primary_key= True)
+    date_created = Column(DateTime)
+    date_of_activity = Column(DateTime)
+    activity = Column(String)
+    user_id = Column(String)
+
+
+class DownloadEvent:
+    __tablename__ = 'DownloadEvent'
+    id = Column(Integer, primary_key= True)
+    doc_type = Column(String)
+    object_id = Column(String)
+    timestamp = Column(DateTime)
+    user_id = Column(String)
+
+
+class Category:
+    __tablename__ = 'Category'
+    id = Column(Integer, primary_key= True)
+    name = Column(String)
+
 
 class Verification(db.Model):
     __tablename__ = 'verification'
@@ -311,3 +414,4 @@ class PlanetSchema( ma.Schema):
 if __name__ == '__main__':
     app.run()
     db.create_all()
+    migrate.init_app(app,db)
