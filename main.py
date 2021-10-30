@@ -907,6 +907,7 @@ def fetch_user_inbox():
 
     return jsonify(NewsSchema().dump(inbox,many=True))
 
+# ADVERT Functions
 
 @app.route('/advert/create', methods = ['POST'])
 def create_advert():
@@ -936,6 +937,7 @@ def create_advert():
     db.session.commit()
 
     return jsonify(message = 'done')
+
 
 @app.route('/advert/update', methods = ['POST'])
 def update_advert():
@@ -973,6 +975,105 @@ def update_advert():
 
     if mode is not None:
         advert.mode = mode
+
+    db.session.commit()
+
+    return jsonify(message = 'done')
+
+
+@app.route('/advert/delete', methods = ['POST'])
+def delete_advert():
+    token = request.json['token']
+    id = request.json['id']
+
+    if token is None:
+        return jsonify(message='Invalid request: body must contain: `title` and `token`.'), 400
+
+    user = db.session.query(User).filter_by(token = token).first()
+    if user is None :
+        return jsonify(message='User not found'), 404
+    elif user.admin_stat == 0:
+        return jsonify(message='Unauthorised user'), 404
+
+    advert = db.session.query(Advert).filter_by(id=id).first()
+    if advert is None:
+        return jsonify(message='Advert not found'), 404
+
+    db.session.delete(advert)
+    db.session.commit()
+
+    return  jsonify(message='done'), 204
+
+
+@app.route('/advert/fetch-latest', methods= ['POST', 'GET'])
+def fetch_latest_ads():
+    token = request.json['token']
+
+    user = db.session.query(User).filter_by(token=token).first()
+    if user is None:
+        return jsonify(message='User not found'), 404
+
+    latest_ads = db.session.query(Advert).order_by(Advert.id.desc()).limit(public_query_limit).all()
+
+    return jsonify(AdSchema().dump(latest_ads,many=True))
+
+# Calendar Functions
+
+@app.route('/calendar/event/create', methods = ['POST'])
+def create_calevent():
+    token = request.json['token']
+    date_of_activity = request.json['date_of_activity']
+    activity = request.json['activity']
+
+
+    if token is None or date_of_activity is None:
+        return jsonify(message='Invalid request: body must contain: `token` and `date_of_activity`.'), 400
+
+    user = db.session.query(User).filter_by(token = token).first()
+    if user is None :
+        return jsonify(message='User not found'), 404
+
+    date_data = str(date_of_activity).split(',')
+    if len(date_of_activity) < 5:
+        return jsonify(message='Invalid request format: `date_of_activity`.'), 400
+
+    try:
+        date = datetime.datetime(int(date_data[0]), int(date_data[1]), int(date_data[2]), int(date_data[3]), int(date_data[4]))
+    except:
+        return jsonify(message='Invalid request format: `date_of_activity`.'), 400
+
+    calevent = CalenderEvent(
+                 activity = str(activity),
+                  user_id = str(user.id) ,
+                    date_of_activity = date,
+                  date_created = datetime.datetime.utcnow())
+
+    db.session.add(calevent)
+    db.session.commit()
+
+    return jsonify(message = 'done')
+
+
+@app.route('/calendar/event/update', methods = ['POST'])
+def update_calevent():
+    token = request.json['token']
+    id = request.json['id']
+    activity = request.json['activity']
+
+
+    if token is None:
+        return jsonify(message='Invalid request: body must contain: token.'), 400
+
+    user = db.session.query(User).filter_by(token = token).first()
+    if user is None :
+        return jsonify(message='User not found'), 404
+
+    calevent = db.session.query(CalenderEvent).filter_by(id=id).first()
+    if calevent is None :
+        return jsonify(message='Event not found'), 404
+
+    if activity is not None:
+        calevent.activity = activity
 
     db.session.commit()
 
@@ -1175,6 +1276,10 @@ class LoginEvent(db.Model):
 class UserSchema(ma.Schema):
     class Meta:
         fields = ('id', 'first_name', 'last_name', 'email','admin_stat','token')
+
+class AdSchema( ma.Schema):
+    class Meta:
+        fields = ['id', 'text', 'image_url', 'action_link', 'mode', 'timestamp']
 
 class CBTSchema( ma.Schema):
     class Meta:
