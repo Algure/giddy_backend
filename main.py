@@ -937,6 +937,47 @@ def create_advert():
 
     return jsonify(message = 'done')
 
+@app.route('/advert/update', methods = ['POST'])
+def update_advert():
+    token = request.json['token']
+    id = request.json['id']
+    text = request.json['text']
+    image_url = request.json['image_url']
+    action_link = request.json['action_link']
+    mode = request.json['mode']
+
+    if token is None :
+        return jsonify(message='Invalid request: body must contain: `token`.'), 400
+
+    user = db.session.query(User).filter_by(token = token).first()
+    if user is None :
+        return jsonify(message='User not found'), 404
+    elif user.admin_stat == 0:
+        return jsonify(message='Unauthorised user'), 404
+
+    advert = db.session.query(Advert).filter_by(id=id).first()
+
+    text = request.json['text']
+    image_url = request.json['image_url']
+    action_link = request.json['action_link']
+    mode = request.json['mode']
+
+    if text is not None:
+        advert.text = text
+
+    if image_url is not None:
+        advert.image_url = image_url
+
+    if action_link is not None:
+        advert.action_link = action_link
+
+    if mode is not None:
+        advert.mode = mode
+
+    db.session.commit()
+
+    return jsonify(message = 'done')
+
 
 def send_email(email:str, message:str,  subject:str = ''):
     emailsend = config('AUTH_EMAIL')
