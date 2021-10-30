@@ -1085,7 +1085,6 @@ def delete_calevent():
     token = request.json['token']
     id = request.json['id']
 
-
     if token is None:
         return jsonify(message='Invalid request: body must contain: token.'), 400
 
@@ -1101,6 +1100,44 @@ def delete_calevent():
     db.session.commit()
 
     return jsonify(message = 'done') , 204
+
+
+@app.route('/calendar/fetch-period', methods= ['POST', 'GET'])
+def fetch_latest_news():
+    token = request.json['token']
+    start = request.json['start']
+    end = request.json['end']
+
+    user = db.session.query(User).filter_by(token=token).first()
+    if user is None:
+        return jsonify(message='User not found'), 404
+    # posts = Post.query.filter(Post.post_time <= end).filter(Post.post_time >= start)
+    start_time = datetime.datetime(2000)
+    if start is not None:
+        date_data = str(start).split(',')
+        if len(date_data) >= 5:
+            try:
+                start_time = datetime.datetime(int(date_data[0]), int(date_data[1]), int(date_data[2]),
+                                         int(date_data[3]), int(date_data[4]))
+            except:
+                # return jsonify(message='Invalid request format: `date_of_activity`.'), 400
+                pass
+
+    end_time = datetime.datetime(2100)
+    if end is not None:
+        date_data = str(start).split(',')
+        if len(date_data) >= 5:
+            try:
+                end_time = datetime.datetime(int(date_data[0]), int(date_data[1]), int(date_data[2]),
+                                         int(date_data[3]), int(date_data[4]))
+            except:
+                # return jsonify(message='Invalid request format: `date_of_activity`.'), 400
+                pass
+
+    latest_news = db.session.query(CalenderEvent).filter(CalenderEvent.user_id == str(user.id)).\
+        filter(CalenderEvent.date_of_activity >= start_time).filter(CalenderEvent.date_of_activity <= end_time).all()
+
+    return jsonify(NewsSchema().dump(latest_news,many=True))
 
 
 def send_email(email:str, message:str,  subject:str = ''):
