@@ -213,6 +213,33 @@ def change_password():
     return jsonify(message = 'done')
 
 
+@app.route('/course/create', methods = ['POST'])
+def create_course():
+    token = request.json['token']
+    name = request.json['name']
+    dept = request.json['dept']
+    school = request.json['school']
+    description = request.json['description']
+    category = request.json['category']
+    pic_url = request.json['pic_url']
+    extras = request.json['extras']
+
+
+    name = Column(String)
+    dept = Column(String)
+    school = Column(String)
+    description = Column(String)
+    category = Column(String)
+    pic_url = Column(String)
+    uploader_id = Column(String)
+    is_published = Column(Boolean)
+    total_tutorials = Column(Integer)
+    total_past_questions = Column(Integer)
+    total_videos = Column(Integer)
+    clicks = Column(Integer)
+    extras = Column(String)
+
+
 @app.route('/video/create', methods = ['POST'])
 def create_video():
     token = request.json['token']
@@ -258,8 +285,9 @@ def create_video():
 
     if course_id != '':
         try:
-            course = db.session.query(Course).filter_by(id=course_id).first()
+            course =  db.session.query(Course).filter_by(id=course_id).first()
             course.videos.append(video)
+            course.total_videos = len(db.session.query(Video).filter_by(course_id=course_id).all())
             db.session.commit()
         except:
             pass
@@ -467,8 +495,10 @@ def create_document():
             course = db.session.query(Course).filter_by(id=course_id).first()
             if doctype == 'tut':
                 course.materials.append(document)
+                course.total_tutorials = len(db.session.query(Document).filter_by(course_id = course_id).filter_by(doctype = doctype).all())
             elif doctype == 'pq':
                 course.past_questions.append(document)
+                course.total_past_questions = len(db.session.query(Document).filter_by(course_id=course_id).filter_by(doctype = doctype).all())
             db.session.commit()
         except:
             print('add course error')
