@@ -406,12 +406,13 @@ def download_video():
     click += 1
     video.clicks = click
 
-    event = DownloadEvent(doc_type='video',
-                object_id=str(video.id),
-                user_id=str(user.id),
-                timestamp=datetime.datetime.utcnow())
+    if int(user.admin_stat) == 0:
+        event = DownloadEvent(doc_type='video',
+                    object_id=str(video.id),
+                    user_id=str(user.id),
+                    timestamp=datetime.datetime.utcnow())
+        db.session.add(event)
 
-    db.session.add(event)
     db.session.commit()
 
     return jsonify({'link': video.url})
@@ -560,12 +561,14 @@ def download_document():
     click += 1
     document.clicks = click
 
-    event = DownloadEvent(doc_type=document.doctype,
-                object_id=str(document.id),
-                user_id=str(user.id),
-                timestamp=datetime.datetime.utcnow())
+    if int(user.admin_stat) == 0:
+        event = DownloadEvent(doc_type=document.doctype,
+                    object_id=str(document.id),
+                    user_id=str(user.id),
+                    timestamp=datetime.datetime.utcnow())
 
-    db.session.add(event)
+        db.session.add(event)
+
     db.session.commit()
 
     return jsonify({'link': document.url})
@@ -676,6 +679,41 @@ def update_cbt():
     db.session.commit()
 
     return jsonify(message = 'done')
+
+
+@app.route('/cbt/delete', methods= ['POST'])
+def delete_cbt():
+    token = request.json['token']
+    cbt_id = request.json['id']
+
+    user = db.session.query(User).filter_by(token=token).first()
+    if user is None:
+        return jsonify(message='User not found'), 404
+    elif user.admin_stat == 0:
+        return jsonify(message='Unauthorised user'), 400
+
+    cbt = db.session.query(CBT).filter_by(id=cbt_id).first()
+    if cbt is None:
+            return jsonify(message='CBT not found'), 404
+
+    db.session.delete(cbt)
+    db.session.commit()
+
+    return jsonify(message='done'), 204
+
+
+@app.route('/course/cbt', methods= ['POST', 'GET'])
+def fetch_course_documents():
+    token = request.json['token']
+    course_id = request.json['course_id']
+
+    user = db.session.query(User).filter_by(token=token).first()
+    if user is None:
+        return jsonify(message='User not found'), 404
+
+    cbts = db.session.query(CBT).filter_by(course_id = course_id).limit(public_query_limit).all()
+
+    return jsonify(CBTSchema().dump(docs,many=True))
 
 
 def send_email(email:str, message:str,  subject:str = ''):
