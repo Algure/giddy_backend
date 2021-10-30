@@ -212,6 +212,107 @@ def change_password():
     return jsonify(message = 'done')
 
 
+@app.route('/video/create', methods = ['POST'])
+def create_video():
+    token = request.json['token']
+    name = request.json['name']
+    url = request.json['url']
+    size = request.json['size']
+    time_in_secs = request.json['time_in_secs']
+    pic_url = request.json['pic_url']
+    course_id = request.json['course_id']
+
+    if name is None or  url is None or size is None or time_in_secs is None or token is None:
+        return jsonify(message='Invalid request: body must contain: name, url, time_in_secs and token'), 404
+
+    try:
+        time_in_secs = int(time_in_secs)
+    except :
+        return jsonify(message=' Invalid time_in_secs parameter'), 404
+
+    user = db.session.query(User).filter_by(token = token).first()
+    if user is None :
+        return jsonify(message='User not found'), 404
+    elif user.admin_stat == 0:
+        return jsonify(message='Unauthorised user'), 404
+
+    if course_id is None:
+        course_id = ''
+
+    if not str(url).startswith('http'):
+        return jsonify(message='Invalid media url'), 404
+
+    video = Video(name = str(name),
+                  url = str(url),
+                  size = str(size),
+                  time_in_secs = time_in_secs,
+                  pic_url = str(pic_url),
+                  course_id = course_id,
+                  uploader_id = user.id,
+                  clicks = 0,
+                  extras = '')
+
+    db.session.add(video)
+    db.session.commit()
+
+    if course_id != '':
+        try:
+            course = db.session.query(Course).filter_by(id=course_id).first()
+            course.videos.append(course)
+            db.session.commit()
+        except:
+            pass
+    return jsonify(message = 'done')
+
+@app.route('/video/update', methods = ['POST'])
+def update_video():
+    token = request.json['token']
+    name = request.json['name']
+    url = request.json['url']
+    size = request.json['size']
+    time_in_secs = request.json['time_in_secs']
+    pic_url = request.json['pic_url']
+    course_id = request.json['course_id']
+
+    if name is None or  url is None or size is None or time_in_secs is None or token is None:
+        return jsonify(message='Invalid request: body must contain: name, url, time_in_secs and token'), 404
+
+    try:
+        time_in_secs = int(time_in_secs)
+    except :
+        return jsonify(message=' Invalid time_in_secs parameter'), 404
+
+    user = db.session.query(User).filter_by(token = token).first()
+    if user is None :
+        return jsonify(message='User not found'), 404
+    elif user.admin_stat == 0:
+        return jsonify(message='Unauthorised user'), 404
+
+    if course_id is None:
+        course_id = 0
+    else:
+        course
+
+    if not str(url).startswith('http'):
+        return jsonify(message='Invalid media url'), 404
+
+    video = Video(name = str(name),
+                  url = str(url),
+                  size = str(size),
+                  time_in_secs = time_in_secs,
+                  pic_url = str(pic_url),
+                  course_id = course_id,
+                  uploader_id = user.id,
+                  clicks = 0,
+                  extras = '')
+
+    db.session.add(video)
+    db.session.commit()
+
+    return jsonify(message = 'done')
+
+
+
 def send_email(email:str, message:str,  subject:str = ''):
     emailsend = config('AUTH_EMAIL')
     print(f'sending email: {emailsend} {email}')
@@ -295,7 +396,7 @@ class Video:
     url = Column(String)
     size = Column(String)
     time_in_secs = Column(Integer)
-    pic_url = Column(Integer)
+    pic_url = Column(String)
     course_id = Column(String)
     uploader_id = Column(String)
     clicks = Column(Integer)
