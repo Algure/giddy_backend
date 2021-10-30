@@ -275,6 +275,7 @@ def update_video():
     size = request.json['size']
     time_in_secs = request.json['time_in_secs']
     pic_url = request.json['pic_url']
+    extras = request.json['extras']
 
     user = db.session.query(User).filter_by(token = token).first()
     if user is None :
@@ -298,6 +299,9 @@ def update_video():
 
     if pic_url is not None:
         video.pic_url = str(pic_url)
+
+    if extras is not None:
+        video.extras = extras
 
     if time_in_secs is not None:
         try:
@@ -392,6 +396,13 @@ def download_video():
         return jsonify('Invalid video id'), 400
 
     video = db.session.query(Video).filter_by(id = video_id).first()
+    if video is None:
+        return jsonify(message='Video not found'), 404
+
+    click = int(video.clicks) if int(video.clicks) is not None else 0
+    click += 1
+    video.clicks = click
+
     event = DownloadEvent(doc_type='video',
                 object_id=str(video.id),
                 user_id=str(user.id),
@@ -401,6 +412,195 @@ def download_video():
     db.session.commit()
 
     return jsonify({'link': video.url})
+
+
+@app.route('/document/create', methods = ['POST'])
+def create_document():
+    token = request.json['token']
+    name = request.json['name']
+    description = request.json['description']
+    doctype = request.json['doctype']
+    size = request.json['size']
+    course_id = request.json['course_id']
+    url = request.json['url']
+    extras = request.json['extras']
+
+    if name is None or  url is None or size is None or doctype is None or token is None:
+        return jsonify(message='Invalid request: body must contain: name, url, time_in_secs and token'), 404
+
+    if len(doctype) == 0:
+        return jsonify(message=' Invalid  document type [doctype]'), 400
+
+    user = db.session.query(User).filter_by(token = token).first()
+    if user is None :
+        return jsonify(message='User not found'), 404
+    elif user.admin_stat == 0:
+        return jsonify(message='Unauthorised user'), 404
+
+    if course_id is None:
+        course_id = ''
+
+    if description is None:
+        description = ''
+
+    if not str(url).startswith('http'):
+        return jsonify(message='Invalid media url'), 404
+
+    document = Document(
+                    name = str(name),
+                  description = description if description is not None else '',
+                  size = str(size),
+                  doctype = str(doctype),
+                    url = str(url),
+                  clicks = 0,
+                  extras = extras if extras is not None else '')
+
+    db.session.add(document)
+    db.session.commit()
+
+    if course_id != '':
+        try:
+            course = db.session.query(Course).filter_by(id=course_id).first()
+            if doctype == 'tut':
+                course.materials.append(document)
+            elif doctype == 'pq':
+                course.past_questions.append(document)
+            db.session.commit()
+        except:
+            print('add course error')
+
+    return jsonify(message = 'done')
+
+
+@app.route('/document/update', methods = ['POST'])
+def update_document():
+    token = request.json['token']
+    doc_id = request.json['id']
+    name = request.json['name']
+    url = request.json['url']
+    size = request.json['size']
+    extras = request.json['extras']
+
+    user = db.session.query(User).filter_by(token = token).first()
+    if user is None :
+        return jsonify(message='User not found'), 404
+    elif user.admin_stat == 0:
+        return jsonify(message='Unauthorised user'), 404
+
+    document = db.session.query(Video).filter_by(id = doc_id).first()
+    if document is None:
+        return jsonify(message='Document not found'), 404
+
+    if name is not None:
+        document.name = str(name)
+
+    if size is not None:
+        document.size = str(size)
+
+    if url is not None:
+        if str(url).startswith('http'):
+            document.url = url
+
+    if extras is not None:
+        document.extras = extras
+
+    db.session.commit()
+
+    return jsonify(message = 'done')
+
+
+@app.route('/document/delete', methods= ['POST'])
+def delete_document():
+    token = request.json['token']
+    doc_id = request.json['id']
+
+    user = db.session.query(User).filter_by(token=token).first()
+    if user is None:
+        return jsonify(message='User not found'), 404
+    elif user.admin_stat == 0:
+        return jsonify(message='Unauthorised user'), 404
+
+    document = db.session.query(Video).filter_by(id=doc_id).first()
+    if document is None:
+            return jsonify(message='Document not found'), 404
+
+    db.session.delete(document)
+    db.session.commit()
+
+    return jsonify(message='done'), 204
+
+
+@app.route('/document/downloadlink', methods= ['POST', 'GET'])
+def download_document():
+    token = request.json['token']
+    doc_id = request.json['doc_id']
+
+    user = db.session.query(User).filter_by(token=token).first()
+    if user is None:
+        return jsonify(message='User not found'), 404
+
+    try:
+        doc_id = int(doc_id)
+    except:
+        return jsonify('Invalid video id'), 400
+
+    document = db.session.query(Document).filter_by(id = doc_id).first()
+    if document is None:
+        return jsonify(message='Document not found'), 404
+
+    click = int(document.clicks) if int(document.clicks) is not None else 0
+    click += 1
+    document.clicks = click
+
+    event = DownloadEvent(doc_type=document.doctype,
+                object_id=str(document.id),
+                user_id=str(user.id),
+                timestamp=datetime.datetime.utcnow())
+
+    db.session.add(event)
+    db.session.commit()
+
+    return jsonify({'link': document.url})
+
+
+@app.route('/document/fetch-trending', methods= ['POST', 'GET'])
+def fetch_trending_documents():
+    token = request.json['token']
+
+    user = db.session.query(User).filter_by(token=token).first()
+    if user is None:
+        return jsonify(message='User not found'), 404
+
+    latest_docs = db.session.query(Document).order_by(Document.clicks.desc()).limit(public_query_limit).all()
+
+    return jsonify(DocumentSchema().dump(latest_docs,many=True))
+
+
+@app.route('/document/fetch-trending', methods= ['POST', 'GET'])
+def fetch_trending_documents():
+    token = request.json['token']
+
+    user = db.session.query(User).filter_by(token=token).first()
+    if user is None:
+        return jsonify(message='User not found'), 404
+
+    docs = db.session.query(Document).order_by(Document.clicks.desc()).limit(public_query_limit).all()
+
+    return jsonify(DocumentSchema().dump(docs,many=True))
+
+
+@app.route('/document/fetch-latest', methods= ['POST', 'GET'])
+def fetch_trending_documents():
+    token = request.json['token']
+
+    user = db.session.query(User).filter_by(token=token).first()
+    if user is None:
+        return jsonify(message='User not found'), 404
+
+    latest_docs = db.session.query(Document).order_by(Document.id.desc()).limit(public_query_limit).all()
+
+    return jsonify(DocumentSchema().dump(latest_docs,many=True))
+
 
 
 def send_email(email:str, message:str,  subject:str = ''):
@@ -598,9 +798,13 @@ class UserSchema(ma.Schema):
     class Meta:
         fields = ('id', 'first_name', 'last_name', 'email','admin_stat','token')
 
+class DocumentSchema( ma.Schema):
+    class Meta:
+        fields = ['id', 'name', 'description', 'doctype', 'size',  'extras']
+
 class VideoSchema( ma.Schema):
     class Meta:
-        fields = ['id', 'name', 'size', 'time_in_secs', 'clicks', 'extras',  'pic_url', 'course_id', 'uploader_id']
+        fields = ['id', 'name', 'size', 'time_in_secs', 'extras',  'pic_url', 'course_id', 'uploader_id']
 
 class PlanetSchema( ma.Schema):
     class Meta:
