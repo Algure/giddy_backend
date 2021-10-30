@@ -908,6 +908,36 @@ def fetch_user_inbox():
     return jsonify(NewsSchema().dump(inbox,many=True))
 
 
+@app.route('/advert/create', methods = ['POST'])
+def create_advert():
+    token = request.json['token']
+    text = request.json['text']
+    image_url = request.json['image_url']
+    action_link = request.json['action_link']
+    mode = request.json['mode']
+
+    if token is None or text is None:
+        return jsonify(message='Invalid request: body must contain: `text` and `token`.'), 400
+
+    user = db.session.query(User).filter_by(token = token).first()
+    if user is None :
+        return jsonify(message='User not found'), 404
+    elif user.admin_stat == 0:
+        return jsonify(message='Unauthorised user'), 404
+
+    advert = Advert(
+                 text = str(text),
+                  image_url = str(image_url) if image_url is not None else '',
+                  action_link = str(action_link) if action_link is not None else '',
+                  mode = str(mode) if mode is not None else '',
+                  timestamp = datetime.datetime.utcnow())
+
+    db.session.add(advert)
+    db.session.commit()
+
+    return jsonify(message = 'done')
+
+
 def send_email(email:str, message:str,  subject:str = ''):
     emailsend = config('AUTH_EMAIL')
     print(f'sending email: {emailsend} {email}')
