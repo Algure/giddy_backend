@@ -35,6 +35,7 @@ scheduler = BackgroundScheduler()
 migrate = Migrate(app, db)
 
 authentication_minutes = 50
+public_query_limit = 50
 
 @app.before_first_request
 def initialises():
@@ -264,6 +265,7 @@ def create_video():
             pass
     return jsonify(message = 'done')
 
+
 @app.route('/video/update', methods = ['POST'])
 def update_video():
     token = request.json['token']
@@ -309,6 +311,38 @@ def update_video():
     return jsonify(message = 'done')
 
 
+@app.route('/video/delete', methods= ['POST'])
+def delete_video():
+    token = request.json['token']
+    video_id = request.json['id']
+
+    user = db.session.query(User).filter_by(token=token).first()
+    if user is None:
+        return jsonify(message='User not found'), 404
+    elif user.admin_stat == 0:
+        return jsonify(message='Unauthorised user'), 404
+
+    video = db.session.query(Video).filter_by(id=video_id).first()
+    if video is None:
+        return jsonify(message='Video not found'), 404
+
+    db.session.delete(video)
+    db.session.commit()
+
+    return jsonify(message='done'), 204
+
+
+@app.route('/video/fetch-latest', methods= ['POST', 'GET'])
+def fetch_latest_video():
+    token = request.json['token']
+
+    user = db.session.query(User).filter_by(token=token).first()
+    if user is None:
+        return jsonify(message='User not found'), 404
+
+    latest_videos = db.session.query(Video).order_by(Video.id.desc()).limit(public_query_limit).all()
+
+    return jsonify(VideoSchema().dump(latest_videos,many=True))
 
 
 def send_email(email:str, message:str,  subject:str = ''):
@@ -505,6 +539,10 @@ class LoginEvent(db.Model):
 class UserSchema(ma.Schema):
     class Meta:
         fields = ('id', 'first_name', 'last_name', 'email','admin_stat','token')
+
+class VideoSchema( ma.Schema):
+    class Meta:
+        fields = ['id', 'name', 'url', 'size', 'time_in_secs', 'clicks', 'extras',  'pic_url', 'course_id', 'uploader_id']
 
 class PlanetSchema( ma.Schema):
     class Meta:
