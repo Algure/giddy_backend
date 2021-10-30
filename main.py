@@ -225,19 +225,35 @@ def create_course():
     extras = request.json['extras']
 
 
-    name = Column(String)
-    dept = Column(String)
-    school = Column(String)
-    description = Column(String)
-    category = Column(String)
-    pic_url = Column(String)
-    uploader_id = Column(String)
-    is_published = Column(Boolean)
-    total_tutorials = Column(Integer)
-    total_past_questions = Column(Integer)
-    total_videos = Column(Integer)
-    clicks = Column(Integer)
-    extras = Column(String)
+    if name is None or  token is None:
+        return jsonify(message='Invalid request: body must contain: name and token'), 400
+
+    user = db.session.query(User).filter_by(token = token).first()
+    if user is None :
+        return jsonify(message='User not found'), 404
+    elif user.admin_stat == 0:
+        return jsonify(message='Unauthorised user'), 400
+
+    course = Course(
+        name = str(name) if name is not None else '',
+        dept = str(dept) if dept is not None else '',
+        school = str(school) if school is not None else '',
+        description = str(description) if description is not None else '',
+        category = str(category) if category is not None,
+        pic_url = str(pic_url) if pic_url is not None else '',
+        uploader_id = str(uploader_id) if uploader_id is not None else '',
+        is_published = False,
+        total_tutorials = 0,
+        total_past_questions=0,
+        total_videos = 0,
+        clicks = 0,
+    )
+
+    db.session.add(course)
+    db.session.commit()
+
+    return jsonify('done') , 200
+
 
 
 @app.route('/video/create', methods = ['POST'])
