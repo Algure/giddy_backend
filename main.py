@@ -398,15 +398,15 @@ def download_video():
     video = db.session.query(Video).filter_by(id = video_id).first()
     if video is None:
         return jsonify(message='Video not found'), 404
-    click = 0
-    try:
-        click = int(video.clicks)
-    except:
-        pass
-    click += 1
-    video.clicks = click
 
     if int(user.admin_stat) == 0:
+        click = 0
+        try:
+            click = int(video.clicks)
+        except:
+            pass
+        click += 1
+        video.clicks = click
         event = DownloadEvent(doc_type='video',
                     object_id=str(video.id),
                     user_id=str(user.id),
@@ -552,16 +552,17 @@ def download_document():
     if document is None:
         return jsonify(message='Document not found'), 404
 
-    click = 0
-    try:
-        click = int(document.clicks)
-    except:
-        pass
 
-    click += 1
-    document.clicks = click
 
     if int(user.admin_stat) == 0:
+        click = 0
+        try:
+            click = int(document.clicks)
+        except:
+            pass
+        click += 1
+        document.clicks = click
+
         event = DownloadEvent(doc_type=document.doctype,
                     object_id=str(document.id),
                     user_id=str(user.id),
@@ -746,6 +747,75 @@ def fetch_latest_cbts():
     latest_cbts = db.session.query(CBT).order_by(CBT.id.desc()).limit(public_query_limit).all()
 
     return jsonify(CBTSchema().dump(latest_cbts,many=True))
+
+
+@app.route('/cbt/downloadlink', methods= ['POST', 'GET'])
+def download_cbt():
+    token = request.json['token']
+    cbt_id = request.json['cbt_id']
+
+    user = db.session.query(User).filter_by(token=token).first()
+    if user is None:
+        return jsonify(message='User not found'), 404
+
+    try:
+        cbt_id = int(cbt_id)
+    except:
+        return jsonify('Invalid CBT id'), 400
+
+    cbt = db.session.query(CBT).filter_by(id = cbt_id).first()
+    if CBT is None:
+        return jsonify(message='CBT not found'), 404
+
+    if int(user.admin_stat) == 0:
+        click = 0
+        try:
+            click = int(cbt.clicks)
+        except:
+            pass
+        click += 1
+        cbt.clicks = click
+        event = DownloadEvent(doc_type='cbt',
+                    object_id=str(cbt.id),
+                    user_id=str(user.id),
+                    timestamp=datetime.datetime.utcnow())
+        db.session.add(event)
+
+    db.session.commit()
+
+    return jsonify({'link': cbt.url})
+
+
+# News APIs
+
+@app.route('/news/create', methods = ['POST'])
+def create_news():
+    token = request.json['token']
+    title = request.json['title']
+    description = request.json['description']
+    user_id = request.json['user_id']
+    extras = request.json['extras']
+
+    if token is None:
+        return jsonify(message='Invalid request: body must contain: `title` and `token`.'), 400
+
+    user = db.session.query(User).filter_by(token = token).first()
+    if user is None :
+        return jsonify(message='User not found'), 404
+    elif user.admin_stat == 0:
+        return jsonify(message='Unauthorised user'), 404
+
+    news = News(
+        title = str(title),
+                  description = str(description) if description is not None else '',
+                  user_id = str(user_id) if user_id is not None else '',
+                  extras = str(extras) if extras is not None else '',
+                  timestamp = datetime.datetime.utcnow())
+
+    db.session.add(news)
+    db.session.commit()
+
+    return jsonify(message = 'done')
 
 
 def send_email(email:str, message:str,  subject:str = ''):
