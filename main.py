@@ -267,20 +267,12 @@ def create_video():
 @app.route('/video/update', methods = ['POST'])
 def update_video():
     token = request.json['token']
+    video_id = request.json['id']
     name = request.json['name']
     url = request.json['url']
     size = request.json['size']
     time_in_secs = request.json['time_in_secs']
     pic_url = request.json['pic_url']
-    course_id = request.json['course_id']
-
-    if name is None or  url is None or size is None or time_in_secs is None or token is None:
-        return jsonify(message='Invalid request: body must contain: name, url, time_in_secs and token'), 404
-
-    try:
-        time_in_secs = int(time_in_secs)
-    except :
-        return jsonify(message=' Invalid time_in_secs parameter'), 404
 
     user = db.session.query(User).filter_by(token = token).first()
     if user is None :
@@ -288,28 +280,34 @@ def update_video():
     elif user.admin_stat == 0:
         return jsonify(message='Unauthorised user'), 404
 
-    if course_id is None:
-        course_id = 0
-    else:
-        course
+    video = db.session.query(Video).filter_by(id = video_id).first()
+    if video is None:
+        return jsonify(message='Video not found'), 404
 
-    if not str(url).startswith('http'):
-        return jsonify(message='Invalid media url'), 404
+    if name is not None:
+        video.name = str(name)
 
-    video = Video(name = str(name),
-                  url = str(url),
-                  size = str(size),
-                  time_in_secs = time_in_secs,
-                  pic_url = str(pic_url),
-                  course_id = course_id,
-                  uploader_id = user.id,
-                  clicks = 0,
-                  extras = '')
+    if size is not None:
+        video.size = str(size)
 
-    db.session.add(video)
+    if url is not None:
+        if str(url).startswith('http'):
+            video.url = url
+
+    if pic_url is not None:
+        video.pic_url = str(pic_url)
+
+    if time_in_secs is not None:
+        try:
+            time_in_secs = int(time_in_secs)
+            video.time_in_secs = time_in_secs
+        except :
+            print('Invalid time_in_secs')
+
     db.session.commit()
 
     return jsonify(message = 'done')
+
 
 
 
