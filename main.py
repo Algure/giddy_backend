@@ -345,6 +345,64 @@ def fetch_latest_video():
     return jsonify(VideoSchema().dump(latest_videos,many=True))
 
 
+@app.route('/video/fetch-trending', methods= ['POST', 'GET'])
+def fetch_trending_videos():
+    token = request.json['token']
+
+    user = db.session.query(User).filter_by(token=token).first()
+    if user is None:
+        return jsonify(message='User not found'), 404
+
+    latest_videos = db.session.query(Video).order_by(Video.clicks.desc()).limit(public_query_limit).all()
+
+    return jsonify(VideoSchema().dump(latest_videos,many=True))
+
+
+@app.route('/course/videos', methods= ['POST', 'GET'])
+def fetch_course_videos():
+    token = request.json['token']
+    course_id = request.json['course_id']
+
+    user = db.session.query(User).filter_by(token=token).first()
+    if user is None:
+        return jsonify(message='User not found'), 404
+
+    try:
+        course_id = int(course_id)
+    except:
+        return jsonify('Invalid course id'), 400
+
+    videos = db.session.query(Video).filter_by(course_id = course_id).all()
+
+    return jsonify(VideoSchema().dump(videos,many=True))
+
+
+@app.route('/video/downloadlink', methods= ['POST', 'GET'])
+def download_video():
+    token = request.json['token']
+    video_id = request.json['video_id']
+
+    user = db.session.query(User).filter_by(token=token).first()
+    if user is None:
+        return jsonify(message='User not found'), 404
+
+    try:
+        video_id = int(video_id)
+    except:
+        return jsonify('Invalid video id'), 400
+
+    video = db.session.query(Video).filter_by(id = video_id).first()
+    event = DownloadEvent(doc_type='video',
+                object_id=str(video.id),
+                user_id=str(user.id),
+                timestamp=datetime.datetime.utcnow())
+
+    db.session.add(event)
+    db.session.commit()
+
+    return jsonify({'link': video.url})
+
+
 def send_email(email:str, message:str,  subject:str = ''):
     emailsend = config('AUTH_EMAIL')
     print(f'sending email: {emailsend} {email}')
@@ -542,7 +600,7 @@ class UserSchema(ma.Schema):
 
 class VideoSchema( ma.Schema):
     class Meta:
-        fields = ['id', 'name', 'url', 'size', 'time_in_secs', 'clicks', 'extras',  'pic_url', 'course_id', 'uploader_id']
+        fields = ['id', 'name', 'size', 'time_in_secs', 'clicks', 'extras',  'pic_url', 'course_id', 'uploader_id']
 
 class PlanetSchema( ma.Schema):
     class Meta:
