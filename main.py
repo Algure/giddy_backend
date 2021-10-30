@@ -818,6 +818,41 @@ def create_news():
     return jsonify(message = 'done')
 
 
+@app.route('/news/update', methods = ['POST'])
+def update_news():
+    token = request.json['token']
+    id = request.json['id']
+    title = request.json['title']
+    description = request.json['description']
+    extras = request.json['extras']
+
+    if token is None:
+        return jsonify(message='Invalid request: body must contain: `title` and `token`.'), 400
+
+    user = db.session.query(User).filter_by(token = token).first()
+    if user is None :
+        return jsonify(message='User not found'), 404
+    elif user.admin_stat == 0:
+        return jsonify(message='Unauthorised user'), 404
+
+    news = db.session.query(News).filter_by(id=id).first()
+    if news is None:
+        return jsonify(message='News not found'), 404
+
+    if title is not None:
+        news.title = title
+
+    if description is not None:
+        news.description = description
+
+    if extras is not None:
+        news.extras = extras
+
+    db.session.commit()
+
+    return jsonify(message = 'done')
+
+
 def send_email(email:str, message:str,  subject:str = ''):
     emailsend = config('AUTH_EMAIL')
     print(f'sending email: {emailsend} {email}')
