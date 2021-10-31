@@ -224,7 +224,6 @@ def create_course():
     pic_url = request.json['pic_url']
     extras = request.json['extras']
 
-
     if name is None or  token is None:
         return jsonify(message='Invalid request: body must contain: name and token'), 400
 
@@ -239,20 +238,74 @@ def create_course():
         dept = str(dept) if dept is not None else '',
         school = str(school) if school is not None else '',
         description = str(description) if description is not None else '',
-        category = str(category) if category is not None,
+        category = str(category) if category is not None else  '',
         pic_url = str(pic_url) if pic_url is not None else '',
-        uploader_id = str(uploader_id) if uploader_id is not None else '',
+        uploader_id = str(user.id),
         is_published = False,
         total_tutorials = 0,
         total_past_questions=0,
         total_videos = 0,
         clicks = 0,
+        extras = str(extras) if extras is not None else  '',
     )
 
     db.session.add(course)
     db.session.commit()
 
     return jsonify('done') , 200
+
+
+@app.route('/course/update', methods = ['POST'])
+def create_update():
+    token = request.json['token']
+    id = request.json['id']
+    name = request.json['name']
+    dept = request.json['dept']
+    school = request.json['school']
+    description = request.json['description']
+    category = request.json['category']
+    pic_url = request.json['pic_url']
+    extras = request.json['extras']
+
+    if token is None or  id is None:
+        return jsonify(message='Invalid request: body must contain: id and token'), 400
+
+    user = db.session.query(User).filter_by(token = token).first()
+    if user is None :
+        return jsonify(message='User not found'), 404
+    elif user.admin_stat == 0:
+        return jsonify(message='Unauthorised user'), 400
+
+    course = db.session.query(Course).filter_by(id = int(id)).first()
+    if course is None :
+            return jsonify(message='Course not found'), 404
+
+    if name is not None:
+        course.name = name
+
+    if dept is not None:
+        course.dept = dept
+
+    if school is not None:
+        course.school = school
+
+    if description is not None:
+        course.description = description
+
+    if category is not None:
+        course.category = category
+
+    if pic_url is not None:
+        course.pic_url = pic_url
+
+    if extras is not None:
+        course.extras = extras
+
+    db.session.commit()
+
+    return jsonify('done') , 200
+
+
 
 
 
