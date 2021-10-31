@@ -97,6 +97,80 @@ def login():
     return jsonify(UserSchema().dump(userlist[0]))
 
 
+@app.route('/admin/analytics', methods= ['POST', 'GET'])
+def fetch_analytics():
+    token = request.json['token']
+    start = request.json['start']
+    end = request.json['end']
+
+    user = db.session.query(User).filter_by(token=token).first()
+    if user is None:
+        return jsonify(message='User not found'), 404
+    if user.admin_stat == 0:
+        return jsonify(message='Unauthorised user'), 400
+
+    start_time = datetime.datetime.utcnow() - datetime.timedelta(days = 7)
+    if start is not None:
+        date_data = str(start).split(',')
+        if len(date_data) >= 5:
+            try:
+                start_time = datetime.datetime(int(date_data[0]), int(date_data[1]), int(date_data[2]),
+                                               int(date_data[3]), int(date_data[4]))
+            except:
+                return jsonify(message='Invalid request format: `start`.'), 400
+
+    end_time = datetime.datetime.utcnow()
+    if end is not None:
+        date_data = str(start).split(',')
+        if len(date_data) >= 5:
+            try:
+                end_time = datetime.datetime(int(date_data[0]), int(date_data[1]), int(date_data[2]),
+                                             int(date_data[3]), int(date_data[4]))
+            except:
+                return jsonify(message='Invalid request format: `end`.'), 400
+
+    eventslist = db.session.query(DownloadEvent).filter(DownloadEvent.user_id == str(user.id)). \
+        filter(DownloadEvent.timestamp >= start_time).filter(CalenderEvent.timestamp <= end_time).all()
+
+    loginlist = db.session.query(LoginEvent).filter(LoginEvent.user_id == str(user.id)). \
+        filter(LoginEvent.timestamp >= start_time).filter(LoginEvent.timestamp <= end_time).all()
+
+    users = 0
+    videos = 0
+    courses = 0
+    tutorials = 0
+    past_questions = 0
+    cbts = 0
+
+    for event in eventslist:
+        if event.doc_type == 'video':
+            videos += 1
+        elif event.doc_type == 'course':
+            courses += 1
+        elif event.doc_type == 'tut':
+            tutorials += 1
+        elif event.doc_type == 'pq':
+            past_questions += 1
+        elif event.doc_type == 'cbt':
+            cbts += 1
+
+    users = len(loginlist)
+
+    return jsonify({'users':users, 'videos':videos, 'courses':courses, 'tutorials':tutorials,
+                    'past_questions':past_questions, 'cbts':cbts})
+
+# class LoginEvent(db.Model):
+#     __tablename__ = 'event'
+#     id = Column(Integer, primary_key=True)
+#     user_id = Column(String)
+#     timestamp = Column(DateTime)
+    # Fetch total users downloaded logged in period
+    # Fetch total videos  downloaded in period
+    # Fetch total courses downloaded in period
+    # fetch total tutorials downloaded in period
+    # fetch total past questions downloaded in period
+    # fetch total cbts downloaded in period
+
 @app.route('/signup', methods = ['POST'])
 def signup():
     if(request.headers.get('Content-Type') != 'application/json'):
@@ -1481,7 +1555,7 @@ def delete_calevent():
 
 
 @app.route('/calendar/fetch-period', methods= ['POST', 'GET'])
-def fetch_latest_news():
+def fetch_latest_calevent():
     token = request.json['token']
     start = request.json['start']
     end = request.json['end']
@@ -1761,7 +1835,7 @@ class CalendarSchema( ma.Schema):
 class CourseSchema( ma.Schema):
     class Meta:
         fields = ['id', 'name', 'dept', 'school', 'description', 'is_published','total_videos','extras','total_past_questions',
-                  'category','total_tutorials', 'pic_url', 'uploader_id']
+                  'category','total_tutorials', 'pic_url',  'clicks', 'uploader_id']
 
 class AdSchema( ma.Schema):
     class Meta:
@@ -1769,7 +1843,7 @@ class AdSchema( ma.Schema):
 
 class CBTSchema( ma.Schema):
     class Meta:
-        fields = ['id', 'name', 'description']
+        fields = ['id', 'name', 'clicks', 'description']
 
 class NewsSchema( ma.Schema):
     class Meta:
@@ -1777,11 +1851,11 @@ class NewsSchema( ma.Schema):
 
 class DocumentSchema( ma.Schema):
     class Meta:
-        fields = ['id', 'name', 'description', 'doctype', 'size',  'extras']
+        fields = ['id', 'name', 'description', 'doctype', 'size', 'clicks', 'extras']
 
 class VideoSchema( ma.Schema):
     class Meta:
-        fields = ['id', 'name', 'size', 'time_in_secs', 'extras',  'pic_url', 'course_id', 'uploader_id']
+        fields = ['id', 'name', 'size', 'time_in_secs', 'extras',  'pic_url', 'course_id', 'clicks', 'uploader_id']
 
 class PlanetSchema( ma.Schema):
     class Meta:
