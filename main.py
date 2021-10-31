@@ -256,7 +256,7 @@ def create_course():
 
 
 @app.route('/course/update', methods = ['POST'])
-def create_update():
+def update_course():
     token = request.json['token']
     id = request.json['id']
     name = request.json['name']
@@ -305,6 +305,66 @@ def create_update():
 
     return jsonify('done') , 200
 
+
+@app.route('/course/delete', methods = ['POST'])
+def delete_course():
+    token = request.json['token']
+    id = request.json['id']
+
+    if token is None or  id is None:
+        return jsonify(message='Invalid request: body must contain: id and token'), 400
+
+    user = db.session.query(User).filter_by(token = token).first()
+    if user is None :
+        return jsonify(message='User not found'), 404
+    elif user.admin_stat == 0:
+        return jsonify(message='Unauthorised user'), 400
+
+    course = db.session.query(Course).filter_by(id = int(id)).first()
+    if course is None :
+            return jsonify(message='Course not found'), 404
+
+    db.session.delete(course)
+    db.session.commit()
+
+    return jsonify(message = 'done'), 204
+
+
+@app.route('/course/downloadlink', methods= ['POST', 'GET'])
+def download_course():
+    token = request.json['token']
+    course_id = request.json['course_id']
+
+    user = db.session.query(User).filter_by(token=token).first()
+    if user is None:
+        return jsonify(message='User not found'), 404
+
+    try:
+        course_id = int(course_id)
+    except:
+        return jsonify('Invalid video id'), 400
+
+    course = db.session.query(Course).filter_by(id = course_id).first()
+    if course is None:
+        return jsonify(message='Course not found'), 404
+
+    if int(user.admin_stat) == 0:
+        click = 0
+        try:
+            click = int(course.clicks)
+        except:
+            pass
+        click += 1
+        course.clicks = click
+        event = DownloadEvent(doc_type='course',
+                    object_id=str(course.id),
+                    user_id=str(user.id),
+                    timestamp=datetime.datetime.utcnow())
+        db.session.add(event)
+
+    db.session.commit()
+
+    return jsonify(CourseSchema().dump(course))
 
 
 
@@ -1439,6 +1499,11 @@ class UserSchema(ma.Schema):
 class CalendarSchema( ma.Schema):
     class Meta:
         fields = ['id', 'date_created', 'date_of_activity', 'activity']
+
+class CourseSchema( ma.Schema):
+    class Meta:
+        fields = ['id', 'name', 'dept', 'school', 'description', 'is_published','total_videos','extras','total_past_questions',
+                  'category','total_tutorials', 'pic_url', 'uploader_id']
 
 class AdSchema( ma.Schema):
     class Meta:
