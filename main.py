@@ -306,6 +306,40 @@ def update_course():
     return jsonify('done') , 200
 
 
+@app.route('/course/publish', methods = ['POST'])
+def publish_course():
+    token = request.json['token']
+    id = request.json['id']
+
+    if token is None or  id is None:
+        return jsonify(message='Invalid request: body must contain: id and token'), 400
+
+    user = db.session.query(User).filter_by(token = token).first()
+    if user is None :
+        return jsonify(message='User not found'), 404
+    elif user.admin_stat == 0:
+        return jsonify(message='Unauthorised user'), 400
+
+    course = db.session.query(Course).filter_by(id = int(id)).first()
+    if course is None :
+            return jsonify(message='Course not found'), 404
+
+    if course.is_published == True:
+        return jsonify(message='Course already published'), 400
+
+    if len(str(course.name).strip()) == 0:
+        return jsonify(message='Invalid course name'), 400
+
+    if course.materials == 0 and course.total_videos == 0 and course.total_past_questions == 0:
+        return jsonify(message='Course has no learning resources'), 400
+
+    course.is_published = True
+
+    db.session.commit()
+
+    return jsonify(message = 'done')
+
+
 @app.route('/course/delete', methods = ['POST'])
 def delete_course():
     token = request.json['token']
@@ -328,6 +362,20 @@ def delete_course():
     db.session.commit()
 
     return jsonify(message = 'done'), 204
+
+
+@app.route('/course/fetch-trending', methods= ['POST', 'GET'])
+def fetch_trending_courses():
+    token = request.json['token']
+
+    user = db.session.query(User).filter_by(token=token).first()
+    if user is None:
+        return jsonify(message='User not found'), 404
+
+    latest_courses = db.session.query(Course).order_by(Course.clicks.desc()).\
+        limit(public_query_limit).all()
+
+    return jsonify(CourseSchema().dump(latest_courses,many=True))
 
 
 @app.route('/course/downloadlink', methods= ['POST', 'GET'])
@@ -365,8 +413,6 @@ def download_course():
     db.session.commit()
 
     return jsonify(CourseSchema().dump(course))
-
-
 
 
 @app.route('/video/create', methods = ['POST'])
@@ -1375,7 +1421,7 @@ class User(db.Model):
     cbt_bookmarks = relationship("CBT", cascade="all, delete-orphan")
 
 
-class Video:
+class Video(db.Model):
     __tablename__ = 'Video'
     id = Column(Integer, primary_key=True)
     name = Column(String)
@@ -1389,7 +1435,7 @@ class Video:
     extras = Column(String)
 
 
-class Course:
+class Course(db.Model):
     __tablename__ = 'Course'
     id = Column(Integer, primary_key=True)
     name = Column(String)
@@ -1412,7 +1458,7 @@ class Course:
     cbt = relationship("CBT", cascade="all, delete-orphan")
 
 
-class Document:
+class Document(db.Model):
     __tablename__ = 'Document'
     id = Column(Integer, primary_key= True)
     name = Column(String)
@@ -1425,7 +1471,7 @@ class Document:
     extras = Column(String)
 
 
-class CBT:
+class CBT(db.Model):
     __tablename__ = 'CBT'
     id = Column(Integer, primary_key= True)
     name = Column(String)
@@ -1435,7 +1481,7 @@ class CBT:
     clicks = Column(Integer)
 
 
-class News:
+class News(db.Model):
     __tablename__ = 'News'
     id = Column(Integer, primary_key= True)
     title = Column(String)
@@ -1445,7 +1491,7 @@ class News:
     extras = Column(String)
 
 
-class Advert:
+class Advert(db.Model):
     __tablename__ = 'Advert'
     id = Column(Integer, primary_key= True)
     text = Column(String)
@@ -1455,7 +1501,7 @@ class Advert:
     timestamp = Column(DateTime)
 
 
-class CalenderEvent:
+class CalenderEvent(db.Model):
     __tablename__ = 'CalenderEvent'
     id = Column(Integer, primary_key= True)
     date_created = Column(DateTime)
@@ -1464,7 +1510,7 @@ class CalenderEvent:
     user_id = Column(String)
 
 
-class DownloadEvent:
+class DownloadEvent(db.Model):
     __tablename__ = 'DownloadEvent'
     id = Column(Integer, primary_key= True)
     doc_type = Column(String)
@@ -1473,7 +1519,7 @@ class DownloadEvent:
     user_id = Column(String)
 
 
-class Category:
+class Category(db.Model):
     __tablename__ = 'Category'
     id = Column(Integer, primary_key= True)
     name = Column(String)
