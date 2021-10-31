@@ -14,9 +14,15 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from flask_mail import Mail, Message
 from sqlalchemy.orm import relationship
 
-app = Flask(__name__)
+from sqlalchemy import Table, Column, Integer, ForeignKey
+from sqlalchemy.orm import relationship
+from sqlalchemy.ext.declarative import declarative_base
 
+
+app = Flask(__name__)
+Base = declarative_base()
 basedir = os.path.abspath(os.path.dirname(__file__))
+
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///'+ os.path.join(basedir, 'planets.db')
 app.config['SCHEDULER_API_ENABLED'] = True
 app.config['MAIL_SERVER']='smtp.mailtrap.io'
@@ -211,6 +217,34 @@ def change_password():
     db.session.commit()
 
     return jsonify(message = 'done')
+
+@app.route('/user/bookmark/course', methods= ['POST', 'DELETE'])
+def bookmark_course():
+    token = request.json['token']
+    course_id = request.json['course_id']
+
+    user = db.session.query(User).filter_by(token=token).first()
+    if user is None:
+        return jsonify(message='User not found'), 404
+
+    try:
+        course_id = int(course_id)
+    except:
+        return jsonify('Invalid video id'), 400
+
+    course = db.session.query(Course).filter_by(id = course_id).first()
+    if course is None:
+        return jsonify(message='Course not found'), 404
+
+    user.course_bookmarks.add(course)
+    if request.method == 'POST':
+        user.course_bookmarks.add(course)
+        db.session.commit()
+    elif request.method == 'DELETE':
+        user.course_bookmarks.remove(course)
+        db.session.commit()
+
+    return jsonify('done')
 
 
 @app.route('/course/create', methods = ['POST'])
@@ -1404,6 +1438,26 @@ def passlib_encryption_verify(raw_password, enc_password):
 
     return response
 
+video_bookmarks_table = Table('video_bookmarks_table', Base.metadata,
+    Column('Users_id', ForeignKey('Users.id')),
+    Column('Video_id', ForeignKey('Video.id'))
+)
+
+document_bookmarks_table = Table('document_bookmarks_table', Base.metadata,
+    Column('Users_id', ForeignKey('Users.id')),
+    Column('Document_id', ForeignKey('Document.id'))
+)
+
+course_bookmarks_table = Table('course_bookmarks_table', Base.metadata,
+    Column('Users_id', ForeignKey('Users.id')),
+    Column('Course_id', ForeignKey('Course.id'))
+)
+
+cbt_bookmarks_table = Table('cbt_bookmarks_table', Base.metadata,
+    Column('Users_id', ForeignKey('Users.id')),
+    Column('CBT_id', ForeignKey('CBT.id'))
+)
+
 class User(db.Model):
     __tablename__ = 'Users'
     id = Column(Integer, primary_key=True)
@@ -1415,10 +1469,10 @@ class User(db.Model):
     admin_stat = Column(Integer)
     # Migration
     reflink = Column(String)
-    video_bookmarks = relationship("Video", cascade="all, delete-orphan")
-    document_bookmarks = relationship("Document", cascade="all, delete-orphan")
-    course_bookmarks = relationship("Course", cascade="all, delete-orphan")
-    cbt_bookmarks = relationship("CBT", cascade="all, delete-orphan")
+    video_bookmarks = relationship("Video", secondary= video_bookmarks_table)
+    document_bookmarks = relationship("Document", secondary = document_bookmarks_table)
+    course_bookmarks = relationship("Course", secondary = course_bookmarks_table)
+    cbt_bookmarks = relationship("CBT", secondary = cbt_bookmarks_table)
 
 
 class Video(db.Model):
@@ -1434,6 +1488,26 @@ class Video(db.Model):
     clicks = Column(Integer)
     extras = Column(String)
 
+
+video_course_table = Table('video_course_table', Base.metadata,
+    Column('Users_id', ForeignKey('Users.id')),
+    Column('Video_id', ForeignKey('Video.id'))
+)
+
+tutorials_course_table = Table('tutorials_course_table', Base.metadata,
+    Column('Users_id', ForeignKey('Users.id')),
+    Column('Document_id', ForeignKey('Document.id'))
+)
+
+pq_course_table = Table('pq_course_table', Base.metadata,
+    Column('Users_id', ForeignKey('Users.id')),
+    Column('Document_id', ForeignKey('Document.id'))
+)
+
+cbt_course_table = Table('cbt_course_table', Base.metadata,
+    Column('Users_id', ForeignKey('Users.id')),
+    Column('CBT_id', ForeignKey('CBT.id'))
+)
 
 class Course(db.Model):
     __tablename__ = 'Course'
@@ -1451,11 +1525,10 @@ class Course(db.Model):
     total_videos = Column(Integer)
     clicks = Column(Integer)
     extras = Column(String)
-    tutorials = relationship("Document", cascade="all, delete-orphan")
-    past_questions = relationship("Document", cascade="all, delete-orphan")
-    materials = relationship("Document", cascade="all, delete-orphan")
-    videos = relationship("Video", cascade="all, delete-orphan")
-    cbt = relationship("CBT", cascade="all, delete-orphan")
+    tutorials = relationship("Document", secondary=tutorials_course_table, cascade="all, delete-orphan")
+    past_questions = relationship("Document", secondary=pq_course_table, cascade="all, delete-orphan")
+    videos = relationship("Video", secondary=video_course_table, cascade="all, delete-orphan")
+    cbt = relationship("CBT", secondary=cbt_course_table , cascade="all, delete-orphan")
 
 
 class Document(db.Model):
