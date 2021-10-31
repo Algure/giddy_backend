@@ -952,12 +952,16 @@ def download_document():
 @app.route('/document/fetch-trending', methods= ['POST', 'GET'])
 def fetch_trending_documents():
     token = request.json['token']
+    doctype = request.json['doctype']
 
     user = db.session.query(User).filter_by(token=token).first()
     if user is None:
         return jsonify(message='User not found'), 404
 
-    docs = db.session.query(Document).order_by(Document.clicks.desc()).limit(public_query_limit).all()
+    if doctype is None:
+        docs = db.session.query(Document).order_by(Document.clicks.desc()).limit(public_query_limit).all()
+    else:
+        docs = db.session.query(Document).filter_in(doctype = doctype).order_by(Document.clicks.desc()).limit(public_query_limit).all()
 
     return jsonify(DocumentSchema().dump(docs,many=True))
 
