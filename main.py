@@ -230,21 +230,156 @@ def bookmark_course():
     try:
         course_id = int(course_id)
     except:
-        return jsonify('Invalid video id'), 400
+        return jsonify('Invalid course id'), 400
 
     course = db.session.query(Course).filter_by(id = course_id).first()
     if course is None:
         return jsonify(message='Course not found'), 404
 
-    user.course_bookmarks.add(course)
-    if request.method == 'POST':
+    if request.method == 'POST' and course not in user.course_bookmarks:
         user.course_bookmarks.add(course)
         db.session.commit()
-    elif request.method == 'DELETE':
+    elif request.method == 'DELETE' and course in user.course_bookmarks:
         user.course_bookmarks.remove(course)
         db.session.commit()
 
     return jsonify('done')
+
+
+@app.route('/user/bookmark/video', methods= ['POST', 'DELETE'])
+def bookmark_video():
+    token = request.json['token']
+    video_id = request.json['video_id']
+
+    user = db.session.query(User).filter_by(token=token).first()
+    if user is None:
+        return jsonify(message='User not found'), 404
+
+    try:
+        video_id = int(video_id)
+    except:
+        return jsonify('Invalid video id'), 400
+
+    video = db.session.query(Video).filter_by(id = video_id).first()
+    if video is None:
+        return jsonify(message='Video not found'), 404
+
+    if request.method == 'POST' and video not in user.video_bookmarks:
+        user.video_bookmarks.add(video)
+        db.session.commit()
+    elif request.method == 'DELETE' and video in user.video_bookmarks:
+        user.video_bookmarks.remove(video)
+        db.session.commit()
+
+    return jsonify('done')
+
+
+@app.route('/user/bookmark/document', methods= ['POST', 'DELETE'])
+def bookmark_document():
+    token = request.json['token']
+    document_id = request.json['document_id']
+
+    user = db.session.query(User).filter_by(token=token).first()
+    if user is None:
+        return jsonify(message='User not found'), 404
+
+    try:
+        document_id = int(document_id)
+    except:
+        return jsonify('Invalid document id'), 400
+
+    document = db.session.query(Document).filter_by(id = document_id).first()
+    if document is None:
+        return jsonify(message='Document not found'), 404
+
+    if request.method == 'POST' and document not in user.document_bookmarks:
+        user.document_bookmarks.add(document)
+        db.session.commit()
+    elif request.method == 'DELETE' and document in user.document_bookmarks:
+        user.document_bookmarks.remove(document)
+        db.session.commit()
+
+    return jsonify('done')
+
+
+@app.route('/user/bookmark/cbt', methods= ['POST', 'DELETE'])
+def bookmark_cbt():
+    token = request.json['token']
+    cbt_id = request.json['cbt_id']
+
+    user = db.session.query(User).filter_by(token=token).first()
+    if user is None:
+        return jsonify(message='User not found'), 404
+
+    try:
+        cbt_id = int(cbt_id)
+    except:
+        return jsonify('Invalid CBT id'), 400
+
+    cbt = db.session.query(CBT).filter_by(id = cbt_id).first()
+    if cbt is None:
+        return jsonify(message='CBT not found'), 404
+
+    if request.method == 'POST' and cbt not in user.cbt_bookmarks:
+        user.cbt_bookmarks.add(cbt)
+        db.session.commit()
+    elif request.method == 'DELETE' and cbt in user.cbt_bookmarks:
+        user.cbt_bookmarks.remove(cbt)
+        db.session.commit()
+
+    return jsonify('done')
+
+
+@app.route('/user/bookmark/cbtfetch', methods= ['POST', 'GET'])
+def fetch_user_cbts():
+    token = request.json['token']
+
+    user = db.session.query(User).filter_by(token=token).first()
+    if user is None:
+        return jsonify(message='User not found'), 404
+
+    cbts = user.cbt_bookmarks.all()
+
+    return jsonify(CBTSchema().dump(cbts,many=True))
+
+
+@app.route('/user/bookmark/videosfetch', methods= ['POST', 'GET'])
+def fetch_user_videos():
+    token = request.json['token']
+
+    user = db.session.query(User).filter_by(token=token).first()
+    if user is None:
+        return jsonify(message='User not found'), 404
+
+    videos = user.video_bookmarks.all()
+
+    return jsonify(VideoSchema().dump(videos,many=True))
+
+
+@app.route('/user/bookmark/coursesfetch', methods= ['POST', 'GET'])
+def fetch_user_courses():
+    token = request.json['token']
+
+    user = db.session.query(User).filter_by(token=token).first()
+    if user is None:
+        return jsonify(message='User not found'), 404
+
+    courses = user.course_bookmarks.all()
+
+    return jsonify(CourseSchema().dump(courses,many=True))
+
+
+@app.route('/user/bookmark/documentsfetch', methods= ['POST', 'GET'])
+def fetch_user_documents():
+    token = request.json['token']
+
+    user = db.session.query(User).filter_by(token=token).first()
+    if user is None:
+        return jsonify(message='User not found'), 404
+
+    docs = user.document_bookmarks.all()
+
+    return jsonify(CourseSchema().dump(docs,many=True))
 
 
 @app.route('/course/create', methods = ['POST'])
