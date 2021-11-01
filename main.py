@@ -17,7 +17,7 @@ from sqlalchemy.orm import relationship
 from sqlalchemy import Table, Column, Integer, ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
-
+import flask_whooshalchemy as wa
 
 app = Flask(__name__)
 Base = declarative_base()
@@ -25,12 +25,14 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///'+ os.path.join(basedir, 'planets.db')
 app.config['SCHEDULER_API_ENABLED'] = True
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 app.config['MAIL_SERVER']='smtp.mailtrap.io'
 app.config['MAIL_PORT'] = 2525
 app.config['MAIL_USERNAME'] = 'f702b77be1a9e9'
 app.config['MAIL_PASSWORD'] = '666dd4298133e8'
 app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USE_SSL'] = False
+app.config['WHOOSH_BASE'] = 'whoosh'
 
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
@@ -1592,6 +1594,56 @@ def fetch_latest_calevent():
     return jsonify(CalendarSchema().dump(calendar,many=True))
 
 
+@app.route('/search', methods= ['POST', 'GET'])
+def fetch_latest_calevent():
+    token = request.json['token']
+    tables = request.json['tables']
+    text = request.json['text']
+
+    user = db.session.query(User).filter_by(token=token).first()
+    if user is None:
+        return jsonify(message='User not found'), 404
+    courses = []
+    cbts = []
+    docs = []
+    videos = []
+
+    if 'course' in tables or tables is None or str(tables).strip() == '':
+        courses = Course.query.whoosh_search(text).all()
+
+    if 'cbt' in tables or tables is None or str(tables).strip() == '':
+        cbts = CBT.query.whoosh_search(text).limit(public_query_limit).all()
+
+    if 'doc' in tables or tables is None or str(tables).strip() == '':
+        docs = Document.query.whoosh_search(text).limit(public_query_limit).all()
+
+    if 'video' in tables or tables is None or str(tables).strip() == '':
+        videos = Video.query.whoosh_search(text).limit(public_query_limit).all()
+
+    videos = list(VideoSchema().dump(videos, many= True))
+    cbts = list(CBTSchema().dump(cbts, many= True))
+    docs =list( DocumentSchema().dump(docs, many= True))
+    courses = list(CourseSchema().dump(courses, many= True))
+
+    for item in videos:
+        endex = (len(courses) - 1) if len(courses) > 0 else 0
+        courses.insert(random.randint(0,endex), item)
+
+    for item in cbts:
+        endex = (len(courses) - 1) if len(courses) > 0 else 0
+        courses.insert(random.randint(0,endex), item)
+
+    for item in docs:
+        endex = (len(courses) - 1) if len(courses) > 0 else 0
+        courses.insert(random.randint(0,endex), item)
+
+    for item in videos:
+        endex = (len(courses) - 1) if len(courses) > 0 else 0
+        courses.insert(random.randint(0,endex), item)
+    x
+    return jsonify(courses)
+
+
 def send_email(email:str, message:str,  subject:str = ''):
     emailsend = config('AUTH_EMAIL')
     print(f'sending email: {emailsend} {email}')
@@ -1689,6 +1741,7 @@ class User(db.Model):
 
 
 class Video(db.Model):
+    __seachable__ = ['name']
     __tablename__ = 'Video'
     id = Column(Integer, primary_key=True)
     name = Column(String)
@@ -1723,6 +1776,7 @@ cbt_course_table = Table('cbt_course_table', Base.metadata,
 )
 
 class Course(db.Model):
+    __seachable__ = ['name','description','school','dept']
     __tablename__ = 'Course'
     id = Column(Integer, primary_key=True)
     name = Column(String)
@@ -1745,6 +1799,7 @@ class Course(db.Model):
 
 
 class Document(db.Model):
+    __seachable__ = ['name','description']
     __tablename__ = 'Document'
     id = Column(Integer, primary_key= True)
     name = Column(String)
@@ -1758,6 +1813,7 @@ class Document(db.Model):
 
 
 class CBT(db.Model):
+    __seachable__ = ['name','description']
     __tablename__ = 'CBT'
     id = Column(Integer, primary_key= True)
     name = Column(String)
@@ -1768,6 +1824,7 @@ class CBT(db.Model):
 
 
 class News(db.Model):
+    __seachable__ = ['title','description',]
     __tablename__ = 'News'
     id = Column(Integer, primary_key= True)
     title = Column(String)
@@ -1823,6 +1880,11 @@ class LoginEvent(db.Model):
     id = Column(Integer, primary_key= True)
     user_id = Column(String)
     timestamp = Column(DateTime)
+
+wa.whoosh_index(app, Course)
+wa.whoosh_index(app, Document)
+wa.whoosh_index(app, Video)
+wa.whoosh_index(app, CBT)
 
 class UserSchema(ma.Schema):
     class Meta:
