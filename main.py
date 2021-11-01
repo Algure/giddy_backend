@@ -1600,6 +1600,9 @@ def fetch_latest_calevent():
     tables = request.json['tables']
     text = request.json['text']
 
+    if text is None or len(str(text).strip()) == 0:
+        return jsonify(message='Invalid request text'), 400
+
     user = db.session.query(User).filter_by(token=token).first()
     if user is None:
         return jsonify(message='User not found'), 404
@@ -1640,7 +1643,7 @@ def fetch_latest_calevent():
     for item in videos:
         endex = (len(courses) - 1) if len(courses) > 0 else 0
         courses.insert(random.randint(0,endex), item)
-    x
+
     return jsonify(courses)
 
 
