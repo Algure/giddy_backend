@@ -1579,7 +1579,7 @@ def fetch_latest_calevent():
 
 
 @app.route('/search', methods= ['POST', 'GET'])
-def fetch_latest_calevent():
+def search_tables():
     token = request.json['token']
     tables = request.json['tables']
     text = request.json['text']

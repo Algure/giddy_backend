@@ -5,8 +5,6 @@ import hashlib
 import random
 
 from decouple import config
-from flask_marshmallow import Marshmallow
-from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 import os
 from flask import Flask, jsonify, request
@@ -14,13 +12,12 @@ from flask import Flask, jsonify, request
 from apscheduler.schedulers.background import BackgroundScheduler
 from flask_mail import Mail, Message
 
-from sqlalchemy.ext.declarative import declarative_base
 import flask_whooshalchemy as wa
 
 from app.mod_one.models import Course, Document, Video, CBT
 
 app = Flask(__name__)
-Base = declarative_base()
+
 basedir = os.path.abspath(os.path.dirname(__file__))
 # Configurations
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///'+ os.path.join(basedir, 'planets.db')
@@ -36,8 +33,17 @@ app.config['WHOOSH_BASE'] = 'whoosh'
 
 # Define the database object which is imported
 # by modules and controllers
-db = SQLAlchemy(app)
-ma = Marshmallow(app)
+from .mod_one.models import db
+from .mod_one.models import ma
+from .mod_one.models import Base
+
+ma.init_app(app)
+migrate = Migrate(app, db)
+db.init_app(app) #Add this line Before migrate line
+with app.app_context():
+    db.create_all()
+    migrate.init_app(app, db)
+
 mail = Mail(app)
 
 scheduler = BackgroundScheduler()
@@ -58,9 +64,4 @@ wa.whoosh_index(app, Course)
 wa.whoosh_index(app, Document)
 wa.whoosh_index(app, Video)
 wa.whoosh_index(app, CBT)
-
-# Build the database:
-# This will create the database file using SQLAlchemy
-db.create_all()
-migrate.init_app(app, db)
 

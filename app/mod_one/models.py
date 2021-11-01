@@ -1,15 +1,17 @@
 # Import the database object (db) from the main application module
 from sqlalchemy.orm import relationship
 
+from flask_marshmallow import Marshmallow
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.ext.declarative import declarative_base
+
 from sqlalchemy import Table, Column, Integer, ForeignKey, String
 from sqlalchemy.orm import relationship
 from sqlalchemy import Column, Integer, Float, String, DateTime, Boolean
 
-from app import db
-from app import ma
-from app import Base
-from app import wa
-from app import app
+Base = declarative_base()
+ma = Marshmallow()
+db = SQLAlchemy()
 
 
 video_course_table = Table('video_course_table', Base.metadata,
@@ -70,7 +72,7 @@ class User(db.Model):
 
 
 class Video(db.Model):
-    __seachable__ = ['name']
+    __searchable__ = ['name']
     __tablename__ = 'Video'
     id = Column(Integer, primary_key=True)
     name = Column(String)
@@ -85,7 +87,7 @@ class Video(db.Model):
 
 
 class Course(db.Model):
-    __seachable__ = ['name','description','school','dept']
+    __searchable__ = ['name','description','school','dept']
     __tablename__ = 'Course'
     id = Column(Integer, primary_key=True)
     name = Column(String)
@@ -108,7 +110,7 @@ class Course(db.Model):
 
 
 class Document(db.Model):
-    __seachable__ = ['name','description']
+    __searchable__ = ['name','description']
     __tablename__ = 'Document'
     id = Column(Integer, primary_key= True)
     name = Column(String)
@@ -122,7 +124,7 @@ class Document(db.Model):
 
 
 class CBT(db.Model):
-    __seachable__ = ['name','description']
+    __searchable__ = ['name','description']
     __tablename__ = 'CBT'
     id = Column(Integer, primary_key= True)
     name = Column(String)
@@ -190,10 +192,6 @@ class LoginEvent(db.Model):
     user_id = Column(String)
     timestamp = Column(DateTime)
 
-wa.whoosh_index(app, Course)
-wa.whoosh_index(app, Document)
-wa.whoosh_index(app, Video)
-wa.whoosh_index(app, CBT)
 
 class UserSchema(ma.Schema):
     class Meta:
