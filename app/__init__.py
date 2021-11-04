@@ -41,7 +41,7 @@ ma.init_app(app)
 migrate = Migrate(app, db)
 db.init_app(app) #Add this line Before migrate line
 with app.app_context():
-    db.create_all()
+    # db.create_all()
     migrate.init_app(app, db)
 
 mail = Mail(app)
