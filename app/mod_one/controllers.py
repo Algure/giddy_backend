@@ -465,13 +465,13 @@ def fetch_user_documents():
 
 @app.route('/course/create', methods = ['POST'])
 def create_course():
-    token = request.json['token']
-    name = request.json['name']
-    dept = request.json['dept']
-    school = request.json['school']
-    description = request.json['description']
-    category = request.json['category']
-    pic_url = request.json['pic_url']
+    token = request.json['token'] if 'token' in request.json else None
+    name = request.json['name'] if 'name' in request.json else None
+    dept = request.json['dept'] if 'dept' in request.json else None
+    school = request.json['school'] if 'school' in request.json else None
+    description = request.json['description'] if 'description' in request.json else None
+    category = request.json['category'] if 'category' in request.json else None
+    pic_url = request.json['pic_url'] if 'pic_url' in request.json else None
     extras = request.json['extras'] if  'extras' in request.json else ""
 
     if name is None or  token is None:
@@ -507,15 +507,15 @@ def create_course():
 
 @app.route('/course/update', methods = ['PATCH'])
 def update_course():
-    token = request.json['token']
-    id = request.json['id']
-    name = request.json['name']
-    dept = request.json['dept']
-    school = request.json['school']
-    description = request.json['description']
-    category = request.json['category']
-    pic_url = request.json['pic_url']
-    extras = request.json['extras']
+    token = request.json['token'] if 'token' in request.json else None
+    id = request.json['id'] if 'id' in request.json else None
+    name = request.json['name'] if 'name' in request.json else None
+    dept = request.json['dept'] if 'dept' in request.json else None
+    school = request.json['school'] if 'school' in request.json else None
+    description = request.json['description'] if 'description' in request.json else None
+    category = request.json['category'] if 'category' in request.json else None
+    pic_url = request.json['pic_url'] if 'pic_url' in request.json else None
+    extras = request.json['extras'] if 'extras' in request.json else None
 
     if token is None or  id is None:
         return jsonify(message='Invalid request: body must contain: id and token'), 400
@@ -558,8 +558,8 @@ def update_course():
 
 @app.route('/course/publish', methods = ['POST'])
 def publish_course():
-    token = request.json['token']
-    id = request.json['id']
+    token = request.json['token']  if 'token' in request.json else None
+    id = request.json['id']  if 'id' in request.json else None
 
     if token is None or  id is None:
         return jsonify(message='Invalid request: body must contain: id and token'), 400
@@ -592,8 +592,8 @@ def publish_course():
 
 @app.route('/course/delete', methods = ['DELETE'])
 def delete_course():
-    token = request.json['token']
-    id = request.json['id']
+    token = request.json['token']  if 'token' in request.json else None
+    id = request.json['id']  if 'id' in request.json else None
 
     if token is None or  id is None:
         return jsonify(message='Invalid request: body must contain: id and token'), 400
@@ -616,7 +616,7 @@ def delete_course():
 
 @app.route('/course/fetch-trending', methods= ['POST', 'GET'])
 def fetch_trending_courses():
-    token = request.json['token']
+    token = request.json['token'] if 'token' in request.json else None
 
     user = db.session.query(User).filter_by(token=token).first()
     if user is None:
@@ -630,8 +630,8 @@ def fetch_trending_courses():
 
 @app.route('/course/downloadlink', methods= ['POST', 'GET'])
 def download_course():
-    token = request.json['token']
-    course_id = request.json['course_id']
+    token = request.json['token']  if 'token' in request.json else None
+    course_id = request.json['course_id']  if 'course_id' in request.json else None
 
     user = db.session.query(User).filter_by(token=token).first()
     if user is None:
@@ -667,13 +667,13 @@ def download_course():
 
 @app.route('/video/create', methods = ['POST'])
 def create_video():
-    token = request.json['token']
-    name = request.json['name']
-    url = request.json['url']
-    size = request.json['size']
-    time_in_secs = request.json['time_in_secs']
-    pic_url = request.json['pic_url']
-    course_id = request.json['course_id']
+    token = request.json['token'] if 'token' in request.json else None
+    name = request.json['name'] if 'name' in request.json else None
+    url = request.json['url'] if 'url' in request.json else None
+    size = request.json['size'] if 'size' in request.json else None
+    time_in_secs = request.json['time_in_secs'] if 'time_in_secs' in request.json else None
+    pic_url = request.json['pic_url'] if 'pic_url' in request.json else None
+    course_id = request.json['course_id'] if 'course_id' in request.json else None
 
     if name is None or  url is None or size is None or time_in_secs is None or token is None:
         return jsonify(message='Invalid request: body must contain: name, url, time_in_secs and token'), 400
@@ -721,14 +721,14 @@ def create_video():
 
 @app.route('/video/update', methods = ['POST'])
 def update_video():
-    token = request.json['token']
-    video_id = request.json['id']
-    name = request.json['name']
-    url = request.json['url']
-    size = request.json['size']
-    time_in_secs = request.json['time_in_secs']
-    pic_url = request.json['pic_url']
-    extras = request.json['extras']
+    token = request.json['token']  if 'token' in request.json else None
+    video_id = request.json['id']  if 'id' in request.json else None
+    name = request.json['name']  if 'name' in request.json else None
+    url = request.json['url']  if 'url' in request.json else None
+    size = request.json['size']  if 'size' in request.json else None
+    time_in_secs = request.json['time_in_secs']  if 'time_in_secs' in request.json else None
+    pic_url = request.json['pic_url']  if 'pic_url' in request.json else None
+    extras = request.json['extras']  if 'extras' in request.json else None
 
     user = db.session.query(User).filter_by(token = token).first()
     if user is None :
@@ -770,8 +770,8 @@ def update_video():
 
 @app.route('/video/delete', methods= ['POST'])
 def delete_video():
-    token = request.json['token']
-    video_id = request.json['id']
+    token = request.json['token']  if 'token' in request.json else None
+    video_id = request.json['id']  if 'id' in request.json else None
 
     user = db.session.query(User).filter_by(token=token).first()
     if user is None:
@@ -791,7 +791,7 @@ def delete_video():
 
 @app.route('/video/fetch-latest', methods= ['POST', 'GET'])
 def fetch_latest_video():
-    token = request.json['token']
+    token = request.json['token']  if 'token' in request.json else None
 
     user = db.session.query(User).filter_by(token=token).first()
     if user is None:
@@ -804,7 +804,7 @@ def fetch_latest_video():
 
 @app.route('/video/fetch-trending', methods= ['POST', 'GET'])
 def fetch_trending_videos():
-    token = request.json['token']
+    token = request.json['token']  if 'token' in request.json else None
 
     user = db.session.query(User).filter_by(token=token).first()
     if user is None:
@@ -817,8 +817,8 @@ def fetch_trending_videos():
 
 @app.route('/course/videos', methods= ['POST', 'GET'])
 def fetch_course_videos():
-    token = request.json['token']
-    course_id = request.json['course_id']
+    token = request.json['token']  if 'token' in request.json else None
+    course_id = request.json['course_id']  if 'course_id' in request.json else None
 
     user = db.session.query(User).filter_by(token=token).first()
     if user is None:
@@ -836,8 +836,8 @@ def fetch_course_videos():
 
 @app.route('/video/downloadlink', methods= ['POST', 'GET'])
 def download_video():
-    token = request.json['token']
-    video_id = request.json['video_id']
+    token = request.json['token']   if 'token' in request.json else None
+    video_id = request.json['video_id']  if 'video_id' in request.json else None
 
     user = db.session.query(User).filter_by(token=token).first()
     if user is None:
@@ -873,14 +873,14 @@ def download_video():
 
 @app.route('/document/create', methods = ['POST'])
 def create_document():
-    token = request.json['token']
-    name = request.json['name']
-    description = request.json['description']
-    doctype = request.json['doctype']
-    size = request.json['size']
-    course_id = request.json['course_id']
-    url = request.json['url']
-    extras = request.json['extras']
+    token = request.json['token']  if 'token' in request.json else None
+    name = request.json['name']  if 'name' in request.json else None
+    description = request.json['description']  if 'description' in request.json else None
+    doctype = request.json['doctype']  if 'doctype' in request.json else None
+    size = request.json['size']  if 'size' in request.json else None
+    course_id = request.json['course_id']  if 'course_id' in request.json else None
+    url = request.json['url']  if 'url' in request.json else None
+    extras = request.json['extras']  if 'extras' in request.json else None
 
     if name is None or  url is None or size is None or doctype is None or token is None:
         return jsonify(message='Invalid request: body must contain: name, url, time_in_secs and token'), 400
@@ -933,12 +933,12 @@ def create_document():
 
 @app.route('/document/update', methods = ['POST'])
 def update_document():
-    token = request.json['token']
-    doc_id = request.json['id']
-    name = request.json['name']
-    url = request.json['url']
-    size = request.json['size']
-    extras = request.json['extras']
+    token = request.json['token']   if 'token' in request.json else None
+    doc_id = request.json['id']  if 'id' in request.json else None
+    name = request.json['name']  if 'name' in request.json else None
+    url = request.json['url']  if 'url' in request.json else None
+    size = request.json['size']  if 'size' in request.json else None
+    extras = request.json['extras']  if 'extras' in request.json else None
 
     user = db.session.query(User).filter_by(token = token).first()
     if user is None :
@@ -970,8 +970,8 @@ def update_document():
 
 @app.route('/document/delete', methods= ['POST'])
 def delete_document():
-    token = request.json['token']
-    doc_id = request.json['id']
+    token = request.json['token']  if 'token' in request.json else None
+    doc_id = request.json['id']  if 'id' in request.json else None
 
     user = db.session.query(User).filter_by(token=token).first()
     if user is None:
@@ -991,8 +991,8 @@ def delete_document():
 
 @app.route('/document/downloadlink', methods= ['POST', 'GET'])
 def download_document():
-    token = request.json['token']
-    doc_id = request.json['doc_id']
+    token = request.json['token']  if 'token' in request.json else None
+    doc_id = request.json['doc_id']  if 'doc_id' in request.json else None
 
     user = db.session.query(User).filter_by(token=token).first()
     if user is None:
@@ -1032,8 +1032,8 @@ def download_document():
 
 @app.route('/document/fetch-trending', methods= ['POST', 'GET'])
 def fetch_trending_documents():
-    token = request.json['token']
-    doctype = request.json['doctype']
+    token = request.json['token'] if 'token' in request.json else None
+    doctype = request.json['doctype'] if 'doctype' in request.json else None
 
     user = db.session.query(User).filter_by(token=token).first()
     if user is None:
@@ -1049,7 +1049,7 @@ def fetch_trending_documents():
 
 @app.route('/document/fetch-latest', methods= ['POST', 'GET'])
 def fetch_latest_documents():
-    token = request.json['token']
+    token = request.json['token']  if 'token' in request.json else None
 
     user = db.session.query(User).filter_by(token=token).first()
     if user is None:
@@ -1062,8 +1062,8 @@ def fetch_latest_documents():
 
 @app.route('/course/document', methods= ['POST', 'GET'])
 def fetch_course_documents():
-    token = request.json['token']
-    course_id = request.json['course_id']
+    token = request.json['token']  if 'token' in request.json else None
+    course_id = request.json['course_id']  if 'course_id' in request.json else None
 
     user = db.session.query(User).filter_by(token=token).first()
     if user is None:
@@ -1077,11 +1077,11 @@ def fetch_course_documents():
 
 @app.route('/cbt/create', methods = ['POST'])
 def create_cbt():
-    token = request.json['token']
-    course_id = request.json['course_id']
-    name = request.json['name']
-    description = request.json['description']
-    data = request.json['data']
+    token = request.json['token'] if 'token' in request.json else None
+    course_id = request.json['course_id'] if 'course_id' in request.json else None
+    name = request.json['name'] if 'name' in request.json else None
+    description = request.json['description'] if 'description' in request.json else None
+    data = request.json['data'] if 'data' in request.json else None
 
     if name is None:
         return jsonify(message='Invalid request: body must contain: name'), 400
@@ -1117,11 +1117,11 @@ def create_cbt():
 
 @app.route('/cbt/update', methods = ['POST'])
 def update_cbt():
-    token = request.json['token']
-    id = request.json['id']
-    name = request.json['name']
-    description = request.json['description']
-    data = request.json['data']
+    token = request.json['token']  if 'token' in request.json else None
+    id = request.json['id']  if 'id' in request.json else None
+    name = request.json['name']  if 'name' in request.json else None
+    description = request.json['description']  if 'description' in request.json else None
+    data = request.json['data']  if 'data' in request.json else None
 
     user = db.session.query(User).filter_by(token = token).first()
     if user is None :
@@ -1149,8 +1149,8 @@ def update_cbt():
 
 @app.route('/cbt/delete', methods= ['POST'])
 def delete_cbt():
-    token = request.json['token']
-    cbt_id = request.json['id']
+    token = request.json['token'] if 'token' in request.json else None
+    cbt_id = request.json['id'] if 'id' in request.json else None
 
     user = db.session.query(User).filter_by(token=token).first()
     if user is None:
@@ -1170,8 +1170,8 @@ def delete_cbt():
 
 @app.route('/course/cbt', methods= ['POST', 'GET'])
 def fetch_course_cbts():
-    token = request.json['token']
-    course_id = request.json['course_id']
+    token = request.json['token']  if 'token' in request.json else None
+    course_id = request.json['course_id']  if 'course_id' in request.json else None
 
     user = db.session.query(User).filter_by(token=token).first()
     if user is None:
@@ -1184,7 +1184,7 @@ def fetch_course_cbts():
 
 @app.route('/cbt/fetch-trending', methods= ['POST', 'GET'])
 def fetch_trending_cbts():
-    token = request.json['token']
+    token = request.json['token']   if 'token' in request.json else None
 
     user = db.session.query(User).filter_by(token=token).first()
     if user is None:
@@ -1197,7 +1197,7 @@ def fetch_trending_cbts():
 
 @app.route('/cbt/fetch-latest', methods= ['POST', 'GET'])
 def fetch_latest_cbts():
-    token = request.json['token']
+    token = request.json['token']   if 'token' in request.json else None
 
     user = db.session.query(User).filter_by(token=token).first()
     if user is None:
@@ -1210,8 +1210,8 @@ def fetch_latest_cbts():
 
 @app.route('/cbt/downloadlink', methods= ['POST', 'GET'])
 def download_cbt():
-    token = request.json['token']
-    cbt_id = request.json['cbt_id']
+    token = request.json['token']   if 'token' in request.json else None
+    cbt_id = request.json['cbt_id']   if 'cbt_id' in request.json else None
 
     user = db.session.query(User).filter_by(token=token).first()
     if user is None:
@@ -1249,11 +1249,11 @@ def download_cbt():
 
 @app.route('/news/create', methods = ['POST'])
 def create_news():
-    token = request.json['token']
-    title = request.json['title']
-    description = request.json['description']
-    user_id = request.json['user_id']
-    extras = request.json['extras']
+    token = request.json['token']  if 'token' in request.json else None
+    title = request.json['title']  if 'title' in request.json else None
+    description = request.json['description']  if 'description' in request.json else None
+    user_id = request.json['user_id']  if 'user_id' in request.json else None
+    extras = request.json['extras']  if 'extras' in request.json else None
 
     if token is None:
         return jsonify(message='Invalid request: body must contain: `title` and `token`.'), 400
@@ -1280,12 +1280,12 @@ def create_news():
 @app.route('/news/update', methods = ['PATCH'])
 def update_news():
     try:
-        token = request.json['token']
-        id = request.json['id']
-        title = request.json['title']
-        description = request.json['description']
-        extras = request.json['extras']
-        user_id = request.json['user_id']
+        token = request.json['token']  if 'token' in request.json else None
+        id = request.json['id']  if 'id' in request.json else None
+        title = request.json['title']  if 'title' in request.json else None
+        description = request.json['description']  if 'description' in request.json else None
+        extras = request.json['extras']  if 'extras' in request.json else None
+        user_id = request.json['user_id']  if 'user_id' in request.json else None
     except:
         return jsonify(message="Incomplete paraneters"), 400
 
@@ -1321,8 +1321,8 @@ def update_news():
 
 @app.route('/news/delete', methods = ['DELETE'])
 def delete_news():
-    token = request.json['token']
-    id = request.json['id']
+    token = request.json['token'] if 'token' in request.json else None
+    id = request.json['id'] if 'id' in request.json else None
 
     if token is None:
         return jsonify(message='Invalid request: body must contain: `title` and `token`.'), 400
@@ -1345,7 +1345,7 @@ def delete_news():
 
 @app.route('/news/fetch-latest', methods= ['POST', 'GET'])
 def fetch_latest_news():
-    token = request.json['token']
+    token = request.json['token'] if 'token' in request.json else None
 
     user = db.session.query(User).filter_by(token=token).first()
     if user is None:
@@ -1358,7 +1358,7 @@ def fetch_latest_news():
 
 @app.route('/news/inbox', methods= ['POST', 'GET'])
 def fetch_user_inbox():
-    token = request.json['token']
+    token = request.json['token'] if 'token' in request.json else None
 
     user = db.session.query(User).filter_by(token=token).first()
     if user is None:
@@ -1377,11 +1377,11 @@ def fetch_user_inbox():
 
 @app.route('/advert/create', methods = ['POST'])
 def create_advert():
-    token = request.json['token']
-    text = request.json['text']
-    image_url = request.json['image_url']
-    action_link = request.json['action_link']
-    mode = request.json['mode']
+    token = request.json['token'] if 'token' in request.json else None
+    text = request.json['text'] if 'text' in request.json else None
+    image_url = request.json['image_url'] if 'image_url' in request.json else None
+    action_link = request.json['action_link'] if 'action_link' in request.json else None
+    mode = request.json['mode'] if 'mode' in request.json else None
 
     if token is None or text is None:
         return jsonify(message='Invalid request: body must contain: `text` and `token`.'), 400
@@ -1407,12 +1407,12 @@ def create_advert():
 
 @app.route('/advert/update', methods = ['PATCH'])
 def update_advert():
-    token = request.json['token']
-    id = request.json['id']
-    text = request.json['text']
-    image_url = request.json['image_url']
-    action_link = request.json['action_link']
-    mode = request.json['mode']
+    token = request.json['token'] if 'token' in request.json else None
+    id = request.json['id'] if 'id' in request.json else None
+    text = request.json['text'] if 'text' in request.json else None
+    image_url = request.json['image_url'] if 'image_url' in request.json else None
+    action_link = request.json['action_link'] if 'action_link' in request.json else None
+    mode = request.json['mode'] if 'mode' in request.json else None
 
     if token is None :
         return jsonify(message='Invalid request: body must contain: `token`.'), 400
@@ -1444,8 +1444,8 @@ def update_advert():
 
 @app.route('/advert/delete', methods = ['DELETE'])
 def delete_advert():
-    token = request.json['token']
-    id = request.json['id']
+    token = request.json['token']  if 'token' in request.json else None
+    id = request.json['id']  if 'id' in request.json else None
 
     if token is None:
         return jsonify(message='Invalid request: body must contain: `title` and `token`.'), 400
@@ -1468,7 +1468,7 @@ def delete_advert():
 
 @app.route('/advert/fetch-latest', methods= ['POST', 'GET'])
 def fetch_latest_ads():
-    token = request.json['token']
+    token = request.json['token'] if 'token' in request.json else None
 
     user = db.session.query(User).filter_by(token=token).first()
     if user is None:
@@ -1482,9 +1482,9 @@ def fetch_latest_ads():
 
 @app.route('/calendar/event/create', methods = ['POST'])
 def create_calevent():
-    token = request.json['token']
-    date_of_activity = request.json['date_of_activity']
-    activity = request.json['activity']
+    token = request.json['token'] if 'token' in request.json else None
+    date_of_activity = request.json['date_of_activity'] if 'date_of_activity' in request.json else None
+    activity = request.json['activity'] if 'activity' in request.json else None
 
 
     if token is None or date_of_activity is None:
@@ -1517,9 +1517,9 @@ def create_calevent():
 
 @app.route('/calendar/event/update', methods = ['POST'])
 def update_calevent():
-    token = request.json['token']
-    id = request.json['id']
-    activity = request.json['activity']
+    token = request.json['token'] if 'token' in request.json else None
+    id = request.json['id'] if 'id' in request.json else None
+    activity = request.json['activity'] if 'activity' in request.json else None
 
 
     if token is None:
@@ -1543,8 +1543,8 @@ def update_calevent():
 
 @app.route('/calendar/event/delete', methods = ['POST'])
 def delete_calevent():
-    token = request.json['token']
-    id = request.json['id']
+    token = request.json['token']  if 'token' in request.json else None
+    id = request.json['id']  if 'id' in request.json else None
 
     if token is None:
         return jsonify(message='Invalid request: body must contain: token.'), 400
@@ -1565,9 +1565,9 @@ def delete_calevent():
 
 @app.route('/calendar/fetch-period', methods= ['POST', 'GET'])
 def fetch_latest_calevent():
-    token = request.json['token']
-    start = request.json['start']
-    end = request.json['end']
+    token = request.json['token']   if 'token' in request.json else None
+    start = request.json['start']  if 'start' in request.json else None
+    end = request.json['end']  if 'end' in request.json else None
 
     user = db.session.query(User).filter_by(token=token).first()
     if user is None:
@@ -1603,9 +1603,9 @@ def fetch_latest_calevent():
 
 @app.route('/search', methods= ['POST', 'GET'])
 def search_tables():
-    token = request.json['token']
-    tables = request.json['tables']
-    text = request.json['text']
+    token = request.json['token']  if 'token' in request.json else None
+    tables = request.json['tables']  if 'tables' in request.json else None
+    text = request.json['text']  if 'text' in request.json else None
 
     if text is None or len(str(text).strip()) == 0:
         return jsonify(message='Invalid request text'), 400

@@ -52,7 +52,7 @@ migrate = Migrate(app, db)
 # Sample HTTP error handling
 @app.errorhandler(404)
 def not_found(error):
-    return render_template('Not found'), 404
+    return ('Not found'), 404
 
 # Import a module / component using its blueprint handler variable (mod_auth)
 from app.mod_one.controllers import mod_one as version1
