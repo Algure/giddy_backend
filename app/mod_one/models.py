@@ -49,7 +49,7 @@ course_bookmarks_table = Table('course_bookmarks_table', db.Model.metadata,
     Column('course_id', ForeignKey('course.id'), primary_key=True)
 )
 
-cbt_bookmarks_table = Table('cbt_bookmarks_table', Base.metadata,
+cbt_bookmarks_table = Table('cbt_bookmarks_table', db.Model.metadata,
     Column('users_id', ForeignKey('users.id'), primary_key=True),
     Column('cbt_id', ForeignKey('cbt.id'), primary_key=True)
 )
@@ -86,10 +86,10 @@ class Course(db.Model):
     total_videos = Column(Integer)
     clicks = Column(Integer)
     extras = Column(String)
-    tutorials = relationship("Document", secondary=tutorials_course_table, cascade="all, delete-orphan")
-    past_questions = relationship("Document", secondary=pq_course_table, cascade="all, delete-orphan")
-    videos = relationship("Video")
-    cbt = relationship("CBT", secondary=cbt_course_table , cascade="all, delete-orphan")
+    tutorials = relationship("Document", secondary=tutorials_course_table)
+    past_questions = relationship("Document", secondary=pq_course_table)
+    videos = relationship("Video", secondary=video_course_table)
+    cbt = relationship("CBT", secondary=cbt_course_table )
 
 class Video(db.Model):
     __searchable__ = ['name']
@@ -202,10 +202,10 @@ class User(db.Model):
     admin_stat = Column(Integer)
     # Migration
     reflink = Column(String)
-    video_bookmarks = relationship("video_books", secondary= video_bookmarks_table)
-    document_bookmarks =  relationship("document_books", secondary = document_bookmarks_table)
+    video_bookmarks = relationship("Video", secondary= video_bookmarks_table)
+    document_bookmarks =  relationship("Document", secondary = document_bookmarks_table)
     course_bookmarks = relationship("Course", secondary = course_bookmarks_table)
-    cbt_bookmarks = relationship("cbt_books", secondary = cbt_bookmarks_table)
+    cbt_bookmarks = relationship("CBT", secondary = cbt_bookmarks_table)
 
 class UserSchema(ma.Schema):
     class Meta:
