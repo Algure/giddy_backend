@@ -179,7 +179,6 @@ def fetch_analytics():
 def signup():
     print('runnning')
     try:
-
         fname = request.json['fname']
         lname = request.json['lname']
         email = request.json['email']
@@ -206,7 +205,7 @@ def signup():
 
     fname = str(fname).strip()
     lname = str(lname).strip()
-    token = encrypt(email)
+    token = gen_random_code(str_size=110)
     password = encrypt(password)
     user = User(first_name=fname,
                     last_name=lname,
