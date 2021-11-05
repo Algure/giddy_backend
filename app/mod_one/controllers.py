@@ -714,12 +714,12 @@ def create_video():
             course.videos.append(video)
             course.total_videos = len(db.session.query(Video).filter_by(course_id=course_id).all())
             db.session.commit()
-        except:
-            pass
-    return jsonify(message = 'done')
+        except Exception as e:
+            print (f'add video to course exception: {e}')
+    return jsonify(VideoSchema().dump(video))
 
 
-@app.route('/video/update', methods = ['POST'])
+@app.route('/video/update', methods = ['PATCH'])
 def update_video():
     token = request.json['token']  if 'token' in request.json else None
     video_id = request.json['id']  if 'id' in request.json else None
@@ -765,10 +765,10 @@ def update_video():
 
     db.session.commit()
 
-    return jsonify(message = 'done')
+    return jsonify(VideoSchema().dump(video))
 
 
-@app.route('/video/delete', methods= ['POST'])
+@app.route('/video/delete', methods= ['DELETE'])
 def delete_video():
     token = request.json['token']  if 'token' in request.json else None
     video_id = request.json['id']  if 'id' in request.json else None
@@ -928,10 +928,10 @@ def create_document():
         except:
             print('add course error')
 
-    return jsonify(message = 'done')
+    return jsonify(DocumentSchema().dump(document))
 
 
-@app.route('/document/update', methods = ['POST'])
+@app.route('/document/update', methods = ['PATCH'])
 def update_document():
     token = request.json['token']   if 'token' in request.json else None
     doc_id = request.json['id']  if 'id' in request.json else None
@@ -965,10 +965,10 @@ def update_document():
 
     db.session.commit()
 
-    return jsonify(message = 'done')
+    return jsonify(DocumentSchema().dump(document))
 
 
-@app.route('/document/delete', methods= ['POST'])
+@app.route('/document/delete', methods= ['DELETE'])
 def delete_document():
     token = request.json['token']  if 'token' in request.json else None
     doc_id = request.json['id']  if 'id' in request.json else None
@@ -1006,8 +1006,6 @@ def download_document():
     document = db.session.query(Document).filter_by(id = doc_id).first()
     if document is None:
         return jsonify(message='Document not found'), 404
-
-
 
     if int(user.admin_stat) == 0:
         click = 0
@@ -1115,7 +1113,7 @@ def create_cbt():
     return jsonify(message = 'done')
 
 
-@app.route('/cbt/update', methods = ['POST'])
+@app.route('/cbt/update', methods = ['PATCH'])
 def update_cbt():
     token = request.json['token']  if 'token' in request.json else None
     id = request.json['id']  if 'id' in request.json else None
@@ -1147,7 +1145,7 @@ def update_cbt():
     return jsonify(message = 'done')
 
 
-@app.route('/cbt/delete', methods= ['POST'])
+@app.route('/cbt/delete', methods= ['DELETE'])
 def delete_cbt():
     token = request.json['token'] if 'token' in request.json else None
     cbt_id = request.json['id'] if 'id' in request.json else None
