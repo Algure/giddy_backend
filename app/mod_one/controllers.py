@@ -580,7 +580,10 @@ def publish_course():
     if len(str(course.name).strip()) == 0:
         return jsonify(message='Invalid course name'), 400
 
-    if course.materials == 0 and course.total_videos == 0 and course.total_past_questions == 0:
+    materials = db.session.query(Document).filter_by(course_id = int(id)).all()
+    videos = db.session.query(Video).filter_by(course_id = int(id)).all()
+    cbts = db.session.query(CBT).filter_by(course_id = int(id)).all()
+    if len(materials )== 0 and len(videos) == 0 and len(cbts) == 0:
         return jsonify(message='Course has no learning resources'), 400
 
     course.is_published = True
