@@ -502,7 +502,7 @@ def create_course():
     db.session.add(course)
     db.session.commit()
 
-    return jsonify('done') , 200
+    return jsonify(CourseSchema().dump(course)) , 200
 
 
 @app.route('/course/update', methods = ['POST'])
@@ -553,7 +553,7 @@ def update_course():
 
     db.session.commit()
 
-    return jsonify('done') , 200
+    return jsonify(CourseSchema().dump(course)) , 200
 
 
 @app.route('/course/publish', methods = ['POST'])
@@ -1277,14 +1277,17 @@ def create_news():
     return jsonify(NewsSchema().dump(news))
 
 
-@app.route('/news/update', methods = ['POST'])
+@app.route('/news/update', methods = ['PATCH'])
 def update_news():
-    token = request.json['token']
-    id = request.json['id']
-    title = request.json['title']
-    description = request.json['description']
-    extras = request.json['extras']
-    user_id = request.json['user_id']
+    try:
+        token = request.json['token']
+        id = request.json['id']
+        title = request.json['title']
+        description = request.json['description']
+        extras = request.json['extras']
+        user_id = request.json['user_id']
+    except:
+        return jsonify(message="Incomplete paraneters"), 400
 
     if token is None:
         return jsonify(message='Invalid request: body must contain: `title` and `token`.'), 400
@@ -1316,7 +1319,7 @@ def update_news():
     return jsonify(NewsSchema().dump(news))
 
 
-@app.route('/news/delete', methods = ['POST'])
+@app.route('/news/delete', methods = ['DELETE'])
 def delete_news():
     token = request.json['token']
     id = request.json['id']
@@ -1402,7 +1405,7 @@ def create_advert():
     return jsonify( AdSchema().dump(advert))
 
 
-@app.route('/advert/update', methods = ['POST'])
+@app.route('/advert/update', methods = ['PATCH'])
 def update_advert():
     token = request.json['token']
     id = request.json['id']
@@ -1439,7 +1442,7 @@ def update_advert():
     return jsonify(AdSchema().dump(advert))
 
 
-@app.route('/advert/delete', methods = ['POST'])
+@app.route('/advert/delete', methods = ['DELETE'])
 def delete_advert():
     token = request.json['token']
     id = request.json['id']
