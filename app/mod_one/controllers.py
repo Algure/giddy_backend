@@ -1399,7 +1399,7 @@ def create_advert():
     db.session.add(advert)
     db.session.commit()
 
-    return jsonify(message = 'done')
+    return jsonify( AdSchema().dump(advert))
 
 
 @app.route('/advert/update', methods = ['POST'])
@@ -1422,11 +1422,6 @@ def update_advert():
 
     advert = db.session.query(Advert).filter_by(id=id).first()
 
-    text = request.json['text']
-    image_url = request.json['image_url']
-    action_link = request.json['action_link']
-    mode = request.json['mode']
-
     if text is not None:
         advert.text = text
 
@@ -1441,7 +1436,7 @@ def update_advert():
 
     db.session.commit()
 
-    return jsonify(message = 'done')
+    return jsonify(AdSchema().dump(advert))
 
 
 @app.route('/advert/delete', methods = ['POST'])
