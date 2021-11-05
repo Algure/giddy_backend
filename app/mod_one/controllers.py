@@ -625,8 +625,6 @@ def fetch_trending_courses():
     if user is None:
         return jsonify(message='User not found'), 404
 
-    course = db.session.query(Course).filter_by(id = int(id)).first()
-
     latest_courses = db.session.query(Course).filter_by(is_published = True).order_by(Course.clicks.desc()).\
         limit(public_query_limit).all()
 
