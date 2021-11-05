@@ -1274,7 +1274,7 @@ def create_news():
     db.session.add(news)
     db.session.commit()
 
-    return jsonify(message = 'done')
+    return jsonify(NewsSchema().dump(news))
 
 
 @app.route('/news/update', methods = ['POST'])
