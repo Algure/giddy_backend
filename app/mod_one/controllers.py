@@ -472,7 +472,7 @@ def create_course():
     description = request.json['description']
     category = request.json['category']
     pic_url = request.json['pic_url']
-    extras = request.json['extras']
+    extras = request.json['extras'] if  'extras' in request.json else ""
 
     if name is None or  token is None:
         return jsonify(message='Invalid request: body must contain: name and token'), 400
@@ -505,7 +505,7 @@ def create_course():
     return jsonify(CourseSchema().dump(course)) , 200
 
 
-@app.route('/course/update', methods = ['POST'])
+@app.route('/course/update', methods = ['PATCH'])
 def update_course():
     token = request.json['token']
     id = request.json['id']
@@ -590,7 +590,7 @@ def publish_course():
     return jsonify(message = 'done')
 
 
-@app.route('/course/delete', methods = ['POST'])
+@app.route('/course/delete', methods = ['DELETE'])
 def delete_course():
     token = request.json['token']
     id = request.json['id']
