@@ -1114,7 +1114,7 @@ def create_cbt():
             db.session.commit()
         except:
             pass
-    return jsonify(message = 'done')
+    return jsonify(CBTSchema().dump(cbt))
 
 
 @app.route('/cbt/update', methods = ['PATCH'])
@@ -1146,7 +1146,7 @@ def update_cbt():
 
     db.session.commit()
 
-    return jsonify(message = 'done')
+    return jsonify(CBTSchema().dump(cbt))
 
 
 @app.route('/cbt/delete', methods= ['DELETE'])
