@@ -11,6 +11,7 @@ import hashlib
 import random
 
 # Import module models (i.e. User)
+from app.mod_one.models import *
 from app.mod_one.models import Course
 from app.mod_one.models import Document
 from app.mod_one.models import  Video
@@ -43,6 +44,23 @@ from app import mail
 
 authentication_minutes = 50
 public_query_limit = 50
+
+
+@app.before_first_request
+def initialises():
+    scheduler.start()
+
+
+@app.cli.command('db_create')
+def db_create_all():
+    db.create_all()
+    print('Database created')
+
+@app.cli.command('db_drop')
+def db_drop():
+    db.drop_all()
+    print('Database dropped')
+
 
 # Create login with password
 @app.route('/')
@@ -159,13 +177,17 @@ def fetch_analytics():
 
 @app.route('/signup', methods = ['POST'])
 def signup():
-    if(request.headers.get('Content-Type') != 'application/json'):
-        return jsonify(f'Content-Type header must be application/json'), 400
-    fname = request.json['fname']
-    lname = request.json['lname']
-    email = request.json['email']
-    password = request.json['password']
+    print('runnning')
+    try:
 
+        fname = request.json['fname']
+        lname = request.json['lname']
+        email = request.json['email']
+        password = request.json['password']
+    except Exception as e:
+        print(f'exception: {e} trace: {e.__traceback__}')
+
+    print('done 1')
     if fname is None or len(str(fname).strip()) == 0:
         return jsonify(message= 'invalid first name'), 400
 

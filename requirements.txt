@@ -2,13 +2,13 @@ alembic==1.7.4
 APScheduler==3.8.1
 blinker==1.3
 click==8.0.3
-Flask==0.10.1
+Flask==2.0.2
 Flask-Mail==0.9.1
 flask-marshmallow==0.14.0
 Flask-Migrate==3.1.0
 flask-msearch==0.2.9.2
 Flask-SQLAlchemy==2.5.1
-Flask-WhooshAlchemy @ git+https://github.com/Algure/Flask-WhooshAlchemy.git
+Flask-WhooshAlchemy @ git+https://github.com/Algure/Flask-WhooshAlchemy.git@f4e8c70dee6cd88082d26f2455d78325a6c1462a
 greenlet==1.1.2
 gunicorn==20.1.0
 itsdangerous==2.0.1

@@ -14,81 +14,64 @@ ma = Marshmallow()
 db = SQLAlchemy()
 
 
-video_course_table = Table('video_course_table', Base.metadata,
-    Column('Users_id', ForeignKey('Users.id')),
-    Column('Video_id', ForeignKey('Video.id'))
+video_course_table = Table('video_course_table', db.Model.metadata,
+    Column('course_id', ForeignKey('course.id')),
+    Column('video_id', ForeignKey('video.id'))
 )
 
-tutorials_course_table = Table('tutorials_course_table', Base.metadata,
-    Column('Users_id', ForeignKey('Users.id')),
-    Column('Document_id', ForeignKey('Document.id'))
+tutorials_course_table = Table('tutorials_course_table', db.Model.metadata,
+    Column('course_id', ForeignKey('course.id'), primary_key=True),
+    Column('document_id', ForeignKey('document.id'), primary_key=True)
 )
 
-pq_course_table = Table('pq_course_table', Base.metadata,
-    Column('Users_id', ForeignKey('Users.id')),
-    Column('Document_id', ForeignKey('Document.id'))
+pq_course_table = Table('pq_course_table', db.Model.metadata,
+    Column('course_id', ForeignKey('course.id'), primary_key=True),
+    Column('document_id', ForeignKey('document.id'), primary_key=True)
 )
 
-cbt_course_table = Table('cbt_course_table', Base.metadata,
-    Column('Users_id', ForeignKey('Users.id')),
-    Column('CBT_id', ForeignKey('CBT.id'))
+cbt_course_table = Table('cbt_course_table', db.Model.metadata,
+    Column('course_id', ForeignKey('course.id')),
+    Column('cbt_id', ForeignKey('cbt.id'))
 )
 
-video_bookmarks_table = Table('video_bookmarks_table', Base.metadata,
-    Column('Users_id', ForeignKey('Users.id')),
-    Column('Video_id', ForeignKey('Video.id'))
+video_bookmarks_table = Table('video_bookmarks_table', db.Model.metadata,
+    Column('users_id', ForeignKey('users.id')),
+    Column('video_id', ForeignKey('video.id'))
 )
 
-document_bookmarks_table = Table('document_bookmarks_table', Base.metadata,
-    Column('Users_id', ForeignKey('Users.id')),
-    Column('Document_id', ForeignKey('Document.id'))
+document_bookmarks_table = Table('document_bookmarks_table', db.Model.metadata,
+    Column('users_id', ForeignKey('users.id'), primary_key=True),
+    Column('Document_id', ForeignKey('document.id'), primary_key=True)
 )
 
-course_bookmarks_table = Table('course_bookmarks_table', Base.metadata,
-    Column('Users_id', ForeignKey('Users.id')),
-    Column('Course_id', ForeignKey('Course.id'))
+course_bookmarks_table = Table('course_bookmarks_table', db.Model.metadata,
+    Column('users_id', ForeignKey('users.id'), primary_key=True),
+    Column('course_id', ForeignKey('course.id'), primary_key=True)
 )
 
 cbt_bookmarks_table = Table('cbt_bookmarks_table', Base.metadata,
-    Column('Users_id', ForeignKey('Users.id')),
-    Column('CBT_id', ForeignKey('CBT.id'))
+    Column('users_id', ForeignKey('users.id'), primary_key=True),
+    Column('cbt_id', ForeignKey('cbt.id'), primary_key=True)
 )
 
-class User(db.Model):
-    __tablename__ = 'Users'
+association_table = Table('association', Base.metadata,
+    Column('left_id', ForeignKey('left.id')),
+    Column('right_id', ForeignKey('right.id'))
+)
+
+class Parent(Base):
+    __tablename__ = 'left'
     id = Column(Integer, primary_key=True)
-    first_name = Column(String)
-    last_name = Column(String)
-    email = Column(String, unique= True)
-    password = Column(String)
-    token = Column(String)
-    admin_stat = Column(Integer)
-    # Migration
-    reflink = Column(String)
-    video_bookmarks = relationship("Video", secondary= video_bookmarks_table)
-    document_bookmarks = relationship("Document", secondary = document_bookmarks_table)
-    course_bookmarks = relationship("Course", secondary = course_bookmarks_table)
-    cbt_bookmarks = relationship("CBT", secondary = cbt_bookmarks_table)
+    children = relationship("Child",
+                    secondary=association_table)
 
-
-class Video(db.Model):
-    __searchable__ = ['name']
-    __tablename__ = 'Video'
+class Child(Base):
+    __tablename__ = 'right'
     id = Column(Integer, primary_key=True)
-    name = Column(String)
-    url = Column(String)
-    size = Column(String)
-    time_in_secs = Column(Integer)
-    pic_url = Column(String)
-    course_id = Column(String)
-    uploader_id = Column(String)
-    clicks = Column(Integer)
-    extras = Column(String)
-
 
 class Course(db.Model):
     __searchable__ = ['name','description','school','dept']
-    __tablename__ = 'Course'
+    __tablename__ = 'course'
     id = Column(Integer, primary_key=True)
     name = Column(String)
     dept = Column(String)
@@ -105,13 +88,28 @@ class Course(db.Model):
     extras = Column(String)
     tutorials = relationship("Document", secondary=tutorials_course_table, cascade="all, delete-orphan")
     past_questions = relationship("Document", secondary=pq_course_table, cascade="all, delete-orphan")
-    videos = relationship("Video", secondary=video_course_table, cascade="all, delete-orphan")
+    videos = relationship("Video")
     cbt = relationship("CBT", secondary=cbt_course_table , cascade="all, delete-orphan")
+
+class Video(db.Model):
+    __searchable__ = ['name']
+    # __tablename__ = 'video'
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    url = Column(String)
+    size = Column(String)
+    time_in_secs = Column(Integer)
+    pic_url = Column(String)
+    course_id = Column(String)
+    uploader_id = Column(String)
+    clicks = Column(Integer)
+    extras = Column(String)
+    video_id = db.Column(db.Integer, db.ForeignKey('video.id'))
 
 
 class Document(db.Model):
     __searchable__ = ['name','description']
-    __tablename__ = 'Document'
+    # __tablename__ = 'document'
     id = Column(Integer, primary_key= True)
     name = Column(String)
     description = Column(String)
@@ -121,11 +119,12 @@ class Document(db.Model):
     url = Column(String)
     clicks = Column(Integer)
     extras = Column(String)
+    document_id = db.Column(db.Integer, db.ForeignKey('document.id'))
 
 
 class CBT(db.Model):
     __searchable__ = ['name','description']
-    __tablename__ = 'CBT'
+    __tablename__ = 'cbt'
     id = Column(Integer, primary_key= True)
     name = Column(String)
     description = Column(String)
@@ -136,7 +135,7 @@ class CBT(db.Model):
 
 class News(db.Model):
     __seachable__ = ['title','description',]
-    __tablename__ = 'News'
+    __tablename__ = 'news'
     id = Column(Integer, primary_key= True)
     title = Column(String)
     description = Column(String)
@@ -146,7 +145,7 @@ class News(db.Model):
 
 
 class Advert(db.Model):
-    __tablename__ = 'Advert'
+    __tablename__ = 'advert'
     id = Column(Integer, primary_key= True)
     text = Column(String)
     image_url = Column(String)
@@ -156,7 +155,7 @@ class Advert(db.Model):
 
 
 class CalenderEvent(db.Model):
-    __tablename__ = 'CalenderEvent'
+    __tablename__ = 'calenderevent'
     id = Column(Integer, primary_key= True)
     date_created = Column(DateTime)
     date_of_activity = Column(DateTime)
@@ -165,7 +164,7 @@ class CalenderEvent(db.Model):
 
 
 class DownloadEvent(db.Model):
-    __tablename__ = 'DownloadEvent'
+    __tablename__ = 'downloadevent'
     id = Column(Integer, primary_key= True)
     doc_type = Column(String)
     object_id = Column(String)
@@ -174,7 +173,7 @@ class DownloadEvent(db.Model):
 
 
 class Category(db.Model):
-    __tablename__ = 'Category'
+    __tablename__ = 'category'
     id = Column(Integer, primary_key= True)
     name = Column(String)
 
@@ -192,6 +191,21 @@ class LoginEvent(db.Model):
     user_id = Column(String)
     timestamp = Column(DateTime)
 
+class User(db.Model):
+    __tablename__ = 'users'
+    id = Column(Integer, primary_key=True)
+    first_name = Column(String)
+    last_name = Column(String)
+    email = Column(String, unique= True)
+    password = Column(String)
+    token = Column(String)
+    admin_stat = Column(Integer)
+    # Migration
+    reflink = Column(String)
+    video_bookmarks = relationship("video_books", secondary= video_bookmarks_table)
+    document_bookmarks =  relationship("document_books", secondary = document_bookmarks_table)
+    course_bookmarks = relationship("Course", secondary = course_bookmarks_table)
+    cbt_bookmarks = relationship("cbt_books", secondary = cbt_bookmarks_table)
 
 class UserSchema(ma.Schema):
     class Meta:
