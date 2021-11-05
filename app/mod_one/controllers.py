@@ -1284,6 +1284,7 @@ def update_news():
     title = request.json['title']
     description = request.json['description']
     extras = request.json['extras']
+    user_id = request.json['user_id']
 
     if token is None:
         return jsonify(message='Invalid request: body must contain: `title` and `token`.'), 400
@@ -1307,9 +1308,12 @@ def update_news():
     if extras is not None:
         news.extras = extras
 
+    if user_id is not None:
+        news.user_id = user_id
+
     db.session.commit()
 
-    return jsonify(message = 'done')
+    return jsonify(NewsSchema().dump(news))
 
 
 @app.route('/news/delete', methods = ['POST'])
