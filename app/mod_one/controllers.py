@@ -903,6 +903,10 @@ def create_document():
     if not str(url).startswith('http'):
         return jsonify(message='Invalid media url'), 404
 
+    doctype = str(doctype)
+    if doctype != 'tut' and doctype != 'pq':
+        return jsonify(message='Invalid doctype. Can only be `tut` or `pq`.' ), 400
+
     document = Document(
                     name = str(name),
                   description = description if description is not None else '',
