@@ -205,12 +205,14 @@ def signup():
     fname = str(fname).strip()
     lname = str(lname).strip()
     token = gen_random_code(str_size=110)
+    reflink = gen_random_code(str_size=6)
     password = encrypt(password)
     user = User(first_name=fname,
                     last_name=lname,
                     email=email,
                     password=password,
                     token = token,
+                    reflink = reflink,
                     admin_stat = 0)
 
     db.session.add(user)
