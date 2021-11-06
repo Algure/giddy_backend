@@ -209,7 +209,7 @@ class User(db.Model):
 
 class UserSchema(ma.Schema):
     class Meta:
-        fields = ('id', 'first_name', 'last_name', 'email','admin_stat','token')
+        fields = ['id', 'first_name', 'last_name', 'email','admin_stat','token']
 
 class CalendarSchema( ma.Schema):
     class Meta:

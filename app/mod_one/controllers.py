@@ -61,7 +61,6 @@ def db_drop():
     db.drop_all()
     print('Database dropped')
 
-
 # Create login with password
 @app.route('/')
 def test():
