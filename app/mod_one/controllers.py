@@ -272,6 +272,7 @@ def signup():
                     password=password,
                     token = token,
                     reflink = reflink,
+                    verification_status = 'update',
                     admin_stat = 0)
 
     db.session.add(user)
@@ -281,6 +282,49 @@ def signup():
 
     return jsonify(UserSchema().dump(user)), 201
 
+
+
+@app.route('/user/verify', methods = ['PATCH'])
+def verify_user():
+    token = request.json['token'] if 'token' in request.json else None
+    id = request.json['id'] if 'id' in request.json else None
+
+    if token is None or  id is None:
+        return jsonify(message='Invalid request: body must contain: id and token'), 400
+
+    admin = db.session.query(User).filter_by(token = token).first()
+    if admin is None :
+        return jsonify(message='Admin profile not found'), 404
+    if admin.admin_stat==0 :
+        return jsonify(message='Unauthorised action'), 400
+
+    user = db.session.query(User).filter_by(id = int(id)).first()
+    if user is None :
+        return jsonify(message='User profile not found'), 404
+
+    if user.verification_status == 'verified':
+        return jsonify(message='User already verified'), 400
+
+    if user.education_level is not None and len(user.education_level) > 0 and \
+            user.school_name is not None and len(user.school_name) > 0 and \
+            user.school_id is not None and len(user.school_id) > 0 and \
+            user.faculty_name is not None and len(user.faculty_name) > 0 and \
+            user.faculty_id is not None and len(user.faculty_id) > 0 and \
+            user.department_name is not None and len(user.department_name) > 0 and \
+            user.department_id is not None and len(user.department_id) > 0 and \
+            user.level is not None and len(user.level) > 0 and \
+            user.matric_no is not None and len(user.matric_no) > 0 and \
+            user.date_of_birth is not None and len(user.date_of_birth) > 0 and \
+            user.phone_number is not None and len(user.phone_number) > 0 and \
+            user.pin is not None and len(user.pin) > 0 and \
+            user.course_form_url is not None and len(user.course_form_url) > 0 and \
+        user.verification_status != 'verified':
+
+        user.verification_status = 'verified'
+    else:
+        return jsonify('Incomplete profile'), 400
+
+    return jsonify(message="done")
 
 
 @app.route('/profile/update', methods = ['PATCH'])
@@ -385,6 +429,25 @@ def update_profile():
         course_form_url = str(course_form_url).strip()
         if len(course_form_url)>0:
             user.course_form_url = course_form_url
+
+    if user.education_level is not None and len(user.education_level)>0 and\
+        user.school_name is not None and len(user.school_name) > 0 and \
+        user.school_id is not None and len(user.school_id) > 0 and\
+        user.faculty_name is not None and len(user.faculty_name) > 0 and \
+        user.faculty_id is not None and len(user.faculty_id) > 0 and \
+        user.department_name is not None and len(user.department_name) > 0 and \
+        user.department_id is not None and len(user.department_id) > 0 and \
+        user.level is not None and len(user.level) > 0 and \
+        user.matric_no is not None and len(user.matric_no) > 0 and \
+        user.date_of_birth is not None and len(user.date_of_birth) > 0 and \
+        user.phone_number is not None and len(user.phone_number) > 0 and \
+        user.pin is not None and len(user.pin) > 0 and \
+        user.course_form_url is not None and len(user.course_form_url) > 0 and \
+        user.verification_status != 'verified':
+
+        user.verification_status = 'pending'
+    else:
+        user.verification_status = 'update'
 
     db.session.commit()
 
