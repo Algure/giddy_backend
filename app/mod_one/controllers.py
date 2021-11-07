@@ -1931,6 +1931,121 @@ def get_school_faculty():
     return  jsonify(FacultySchema().dump(facultylist, many=True))
 
 
+@app.route('/department/create', methods = ['POST'])
+def create_department():
+    token = request.json['token'] if 'token' in request.json else None
+    name = request.json['name'] if 'name' in request.json else None
+    faculty_id = request.json['faculty_id'] if 'faculty_id' in request.json else None
+
+    if token is None or name is None or faculty_id is None:
+        return jsonify(message='Invalid request: body must contain: `name`, `faculty_id` and `token`.'), 400
+
+    user = db.session.query(User).filter_by(token = token).first()
+    if user is None :
+        return jsonify(message='User not found'), 404
+    elif user.admin_stat == 0:
+        return jsonify(message='Unauthorised user'), 400
+
+    name = str(name).strip()
+    if len(name) == 0:
+        return jsonify(message='Name cannot be empty'), 400
+
+    faculty = db.session.query(Faculty).filter_by(id=int(faculty_id)).first()
+    if faculty is None:
+        return jsonify(message='Faculty not found'), 404
+
+    name = str(name).strip()
+    departments = db.session.query(Department).filter_by(name=str(name)).\
+        filter_by(faculty_id = str(faculty_id)).all()
+
+    if len(departments) > 0:
+        return jsonify(message='Department already exists'), 400
+
+
+    dept = Department(
+                 name = str(name),
+                school_id = str(faculty.school_id),
+                faculty_id = str(faculty_id))
+
+    db.session.add(dept)
+    db.session.commit()
+
+    faculty.departments.append(dept)
+    db.session.commit()
+
+    return jsonify( DepartmentSchema().dump(dept))
+
+
+@app.route('/department/update', methods = ['PATCH'])
+def update_department():
+    token = request.json['token'] if 'token' in request.json else None
+    id = request.json['id'] if 'id' in request.json else None
+    name = request.json['name'] if 'name' in request.json else None
+
+    if token is None or id is None :
+        return jsonify(message='Invalid request: body must contain: `token` and `id`.'), 400
+
+    user = db.session.query(User).filter_by(token = token).first()
+    if user is None :
+        return jsonify(message='User not found'), 404
+    elif user.admin_stat == 0:
+        return jsonify(message='Unauthorised user'), 404
+
+    department = db.session.query(Department).filter_by(id=int(id)).first()
+
+    if department is None:
+        return jsonify(message='Department not found'), 404
+
+    if name is not None:
+        department.name = name
+
+    db.session.commit()
+
+    return jsonify(DepartmentSchema().dump(department))
+
+
+@app.route('/department/delete', methods = ['DELETE'])
+def delete_department():
+    token = request.json['token']  if 'token' in request.json else None
+    id = request.json['id']  if 'id' in request.json else None
+
+    if token is None or id is None:
+        return jsonify(message='Invalid request: body must contain: `title` and `id`.'), 400
+
+    user = db.session.query(User).filter_by(token = token).first()
+    if user is None :
+        return jsonify(message='User not found'), 404
+    elif user.admin_stat == 0:
+        return jsonify(message='Unauthorised user'), 404
+
+    department = db.session.query(Department).filter_by(id=int(id)).first()
+    if department is None:
+        return jsonify(message='Department not found'), 404
+
+    db.session.delete(department)
+    db.session.commit()
+
+    return  jsonify(message='done'), 204
+
+
+@app.route('/faculty/department/fetch-all', methods = ['POST', 'GET'])
+def get_faculty_departments():
+    token = request.json['token']  if 'token' in request.json else None
+    faculty_id = request.json['faculty_id']  if 'faculty_id' in request.json else None
+
+    if token is None or faculty_id is None:
+        return jsonify(message='Invalid request: body must contain: `title` and `faculty_id`.'), 400
+
+
+    user = db.session.query(User).filter_by(token = token).first()
+    if user is None :
+        return jsonify(message='User not found'), 404
+
+    deptlist = db.session.query(Department).filter_by(faculty_id = str(faculty_id)).all()
+
+    return  jsonify(DepartmentSchema().dump(deptlist, many=True))
+
+
 
 
 

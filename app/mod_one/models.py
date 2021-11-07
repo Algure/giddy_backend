@@ -81,7 +81,7 @@ class Faculty(db.Model):
     id = Column(Integer, primary_key=True)
     name = Column(String)
     school_id = Column(String)
-    faculties = relationship("Department", cascade="all, delete-orphan")
+    departments = relationship("Department", cascade="all, delete-orphan")
 
 class School(db.Model):
     __tablename__ = 'school'
