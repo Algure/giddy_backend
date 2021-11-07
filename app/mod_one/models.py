@@ -75,12 +75,14 @@ class Department(db.Model):
     name = Column(String)
     school_id = Column(String)
     faculty_id = Column(String)
+    faculty_fid = Column(Integer,ForeignKey('faculty.id'))
 
 class Faculty(db.Model):
     __tablename__ = 'faculty'
     id = Column(Integer, primary_key=True)
     name = Column(String)
     school_id = Column(String)
+    school_fid = Column(Integer,ForeignKey('school.id'))
     departments = relationship("Department", cascade="all, delete-orphan")
 
 class School(db.Model):
