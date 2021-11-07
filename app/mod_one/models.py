@@ -69,13 +69,38 @@ class Child(Base):
     __tablename__ = 'right'
     id = Column(Integer, primary_key=True)
 
+class Department(db.Model):
+    __tablename__ = 'faculty'
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    school_id = Column(String)
+    faculty_id = Column(String)
+
+class Faculty(db.Model):
+    __tablename__ = 'faculty'
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    school_id = Column(String)
+    faculties = relationship("Department", cascade="all, delete-orphan")
+
+class School(db.Model):
+    __tablename__ = 'school'
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    faculties = relationship("Faculty", cascade="all, delete-orphan")
+
+
 class Course(db.Model):
     __searchable__ = ['name','description','school','dept']
     __tablename__ = 'course'
     id = Column(Integer, primary_key=True)
     name = Column(String)
     dept = Column(String)
+    dept_id = Column(String)
+    faculty = Column(String)
+    faculty_id = Column(String)
     school = Column(String)
+    school_id = Column(String)
     description = Column(String)
     category = Column(String)
     pic_url = Column(String)
@@ -200,16 +225,34 @@ class User(db.Model):
     password = Column(String)
     token = Column(String)
     admin_stat = Column(Integer)
-    # Migration
+    # Migration 2
+    verification_status = Column(String)
+    education_level = Column(String)
+    verification_date = Column(DateTime)
+    school_name = Column(String)
+    school_id = Column(String)
+    faculty_name = Column(String)
+    faculty_id = Column(String)
+    department_name = Column(String)
+    department_id = Column(String)
+    level = Column(String)
+    matric_no = Column(String)
+    date_of_birth = Column(String)
+    phone_number = Column(String)
+    pin = Column(String)
+    course_form_url = Column(String)
+
+    ######################
     reflink = Column(String)
     video_bookmarks = relationship("Video", secondary= video_bookmarks_table)
     document_bookmarks =  relationship("Document", secondary = document_bookmarks_table)
     course_bookmarks = relationship("Course", secondary = course_bookmarks_table)
     cbt_bookmarks = relationship("CBT", secondary = cbt_bookmarks_table)
 
+
 class UserSchema(ma.Schema):
     class Meta:
-        fields = ['id', 'first_name', 'last_name', 'email','admin_stat','token','reflink']
+        fields = ['id', 'first_name', 'last_name', 'email','admin_stat','token','reflink','course_form_url','pin','phone_number','date_of_birth','matric_no','level','department_id','department_name','faculty_id','faculty_name','school_id','school_name','verification_date','education_level','verification_status']
 
 class CalendarSchema( ma.Schema):
     class Meta:
@@ -243,3 +286,17 @@ class VideoSchema( ma.Schema):
 class PlanetSchema( ma.Schema):
     class Meta:
         fields = ['planet_id', 'planet_name', 'planet_type', 'home_star', 'mass', 'radius', 'distance']
+
+
+class DepartmentSchema( ma.Schema):
+    class Meta:
+        fields = ['id', 'name', 'faculty_id', 'school_id']
+
+class FacultySchema( ma.Schema):
+    class Meta:
+        fields = ['id', 'name', 'school_id']
+
+class SchoolSchema( ma.Schema):
+    class Meta:
+        fields = ['id', 'name']
+
