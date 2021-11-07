@@ -70,7 +70,7 @@ class Child(Base):
     id = Column(Integer, primary_key=True)
 
 class Department(db.Model):
-    __tablename__ = 'faculty'
+    __tablename__ = 'department'
     id = Column(Integer, primary_key=True)
     name = Column(String)
     school_id = Column(String)
