@@ -45,6 +45,65 @@ from app import mail
 authentication_minutes = 50
 public_query_limit = 50
 
+def destroyVerificationEvent(code:str):
+    print(f'job ran: {code}')
+    try:
+        verification = db.session.query(Verification).filter_by(code=code).first()
+        if verification is not None:
+            print('detected verification')
+
+            db.session.delete(verification)
+            db.session.commit()
+
+        scheduler.remove_job(code)
+    except  Exception:
+        print(f'job: {code} does not exist')
+
+
+def gen_random_code(str_size):
+    allowed_chars='0123456789'
+    return ''.join(random.choice(allowed_chars) for x in range(str_size))
+
+
+def random_string_generator(str_size):
+    allowed_chars='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.,;!@#$%^&*_?><0123456789'
+    return ''.join(random.choice(allowed_chars) for x in range(str_size))
+
+
+def encrypt(raw_password, salt='b57b5c1c5ae168997a33b908f3bb315f'):
+    # generate new salt, and hash a password
+    salt_size = 32
+    rounds = 12000
+
+    if raw_password:
+        encrypted = hashlib.md5(str(raw_password + salt).encode()).hexdigest()
+    else:
+        encrypted = None
+
+    return encrypted
+
+def passlib_encryption_verify(raw_password, enc_password):
+    """
+    @returns TRUE or FALSE
+    """
+    if raw_password and enc_password:
+        # verifying the password
+        response = str(encrypt(raw_password)) == str(enc_password)
+    else:
+        response = None
+
+    return response
+
+
+def send_email(email:str, message:str,  subject:str = ''):
+    emailsend = config('AUTH_EMAIL')
+    print(f'sending email: {emailsend} {email}')
+    msg = Message( subject=subject, body= message,
+        sender= emailsend,
+        recipients=[email]
+    )
+    mail.send(msg)
+
 
 @app.before_first_request
 def initialises():
@@ -1759,62 +1818,119 @@ def get_schools():
     return  jsonify(SchoolSchema().dump(schools, many=True))
 
 
+@app.route('/faculty/create', methods = ['POST'])
+def create_faculty():
+    token = request.json['token'] if 'token' in request.json else None
+    name = request.json['name'] if 'name' in request.json else None
+    school_id = request.json['school_id'] if 'school_id' in request.json else None
 
-def send_email(email:str, message:str,  subject:str = ''):
-    emailsend = config('AUTH_EMAIL')
-    print(f'sending email: {emailsend} {email}')
-    msg = Message( subject=subject, body= message,
-        sender= emailsend,
-        recipients=[email]
-    )
-    mail.send(msg)
+    if token is None or name is None or school_id is None:
+        return jsonify(message='Invalid request: body must contain: `name`, `school_id` and `token`.'), 400
+
+    user = db.session.query(User).filter_by(token = token).first()
+    if user is None :
+        return jsonify(message='User not found'), 404
+    elif user.admin_stat == 0:
+        return jsonify(message='Unauthorised user'), 400
+
+    name = str(name).strip()
+    if len(name) == 0:
+        return jsonify(message='Name cannot be empty'), 400
+
+    school = db.session.query(School).filter_by(id=int(school_id)).first()
+    if school is None:
+        return jsonify(message='School not found'), 404
+
+    name = str(name).strip()
+    faculties = db.session.query(Faculty).filter_by(name=str(name)).\
+        filter_by(school_id = str(school_id)).all()
+
+    if len(faculties) > 0:
+        return jsonify(message='Faculty already exists'), 400
+
+    faculty = Faculty(
+                 name = str(name),
+                school_id = str(school.id))
+
+    db.session.add(faculty)
+    db.session.commit()
+
+    school.faculties.append(faculty)
+    db.session.commit()
+
+    return jsonify( FacultySchema().dump(faculty))
 
 
-def destroyVerificationEvent(code:str):
-    print(f'job ran: {code}')
-    try:
-        verification = db.session.query(Verification).filter_by(code=code).first()
-        if verification is not None:
-            print('detected verification')
+@app.route('/faculty/update', methods = ['PATCH'])
+def update_faculty():
+    token = request.json['token'] if 'token' in request.json else None
+    id = request.json['id'] if 'id' in request.json else None
+    name = request.json['name'] if 'name' in request.json else None
 
-            db.session.delete(verification)
-            db.session.commit()
+    if token is None or id is None :
+        return jsonify(message='Invalid request: body must contain: `token` and `id`.'), 400
 
-        scheduler.remove_job(code)
-    except  Exception:
-        print(f'job: {code} does not exist')
+    user = db.session.query(User).filter_by(token = token).first()
+    if user is None :
+        return jsonify(message='User not found'), 404
+    elif user.admin_stat == 0:
+        return jsonify(message='Unauthorised user'), 404
+
+    faculty = db.session.query(Faculty).filter_by(id=int(id)).first()
+
+    if faculty is None:
+        return jsonify(message='Faculty not found'), 404
+
+    if name is not None:
+        faculty.name = name
+
+    db.session.commit()
+
+    return jsonify(FacultySchema().dump(faculty))
 
 
-def gen_random_code(str_size):
-    allowed_chars='0123456789'
-    return ''.join(random.choice(allowed_chars) for x in range(str_size))
+@app.route('/faculty/delete', methods = ['DELETE'])
+def delete_faculty():
+    token = request.json['token']  if 'token' in request.json else None
+    id = request.json['id']  if 'id' in request.json else None
+
+    if token is None or id is None:
+        return jsonify(message='Invalid request: body must contain: `title` and `id`.'), 400
+
+    user = db.session.query(User).filter_by(token = token).first()
+    if user is None :
+        return jsonify(message='User not found'), 404
+    elif user.admin_stat == 0:
+        return jsonify(message='Unauthorised user'), 404
+
+    faculty = db.session.query(Faculty).filter_by(id=int(id)).first()
+    if faculty is None:
+        return jsonify(message='Faculty not found'), 404
+
+    db.session.delete(faculty)
+    db.session.commit()
+
+    return  jsonify(message='done'), 204
 
 
-def random_string_generator(str_size):
-    allowed_chars='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.,;!@#$%^&*_?><0123456789'
-    return ''.join(random.choice(allowed_chars) for x in range(str_size))
+@app.route('/school/faculty/fetch-all', methods = ['POST', 'GET'])
+def get_school_faculty():
+    token = request.json['token']  if 'token' in request.json else None
+    school_id = request.json['school_id']  if 'school_id' in request.json else None
+
+    if token is None or school_id is None:
+        return jsonify(message='Invalid request: body must contain: `title` and `school_id`.'), 400
 
 
-def encrypt(raw_password, salt='b57b5c1c5ae168997a33b908f3bb315f'):
-    # generate new salt, and hash a password
-    salt_size = 32
-    rounds = 12000
+    user = db.session.query(User).filter_by(token = token).first()
+    if user is None :
+        return jsonify(message='User not found'), 404
 
-    if raw_password:
-        encrypted = hashlib.md5(str(raw_password + salt).encode()).hexdigest()
-    else:
-        encrypted = None
+    facultylist = db.session.query(Faculty).filter_by(school_id = str(school_id)).all()
 
-    return encrypted
+    return  jsonify(FacultySchema().dump(facultylist, many=True))
 
-def passlib_encryption_verify(raw_password, enc_password):
-    """
-    @returns TRUE or FALSE
-    """
-    if raw_password and enc_password:
-        # verifying the password
-        response = str(encrypt(raw_password)) == str(enc_password)
-    else:
-        response = None
 
-    return response
+
+
+
