@@ -1660,6 +1660,89 @@ def search_tables():
     return jsonify(courses)
 
 
+@app.route('/school/create', methods = ['POST'])
+def create_school():
+    token = request.json['token'] if 'token' in request.json else None
+    name = request.json['name'] if 'name' in request.json else None
+
+    if token is None or name is None:
+        return jsonify(message='Invalid request: body must contain: `name` and `token`.'), 400
+
+    user = db.session.query(User).filter_by(token = token).first()
+    if user is None :
+        return jsonify(message='User not found'), 404
+    elif user.admin_stat == 0:
+        return jsonify(message='Unauthorised user'), 400
+
+    name = str(name).strip()
+    if len(name) == 0:
+        return jsonify(message='Name cannot be empty'), 400
+
+    schools = db.session.query(School).filter_by(name=name).all()
+    if len(schools) > 0:
+        return jsonify(message='School already exists'), 400
+
+    school = School(
+                 name = str(name),)
+
+    db.session.add(school)
+    db.session.commit()
+
+    return jsonify( SchoolSchema().dump(school))
+
+
+@app.route('/school/update', methods = ['PATCH'])
+def update_school():
+    token = request.json['token'] if 'token' in request.json else None
+    id = request.json['id'] if 'id' in request.json else None
+    name = request.json['name'] if 'name' in request.json else None
+
+    if token is None or id is None :
+        return jsonify(message='Invalid request: body must contain: `token` and `id`.'), 400
+
+    user = db.session.query(User).filter_by(token = token).first()
+    if user is None :
+        return jsonify(message='User not found'), 404
+    elif user.admin_stat == 0:
+        return jsonify(message='Unauthorised user'), 404
+
+    school = db.session.query(School).filter_by(id=id).first()
+
+    if school is None:
+        return jsonify(message='School not found'), 404
+
+    if name is not None:
+        school.name = name
+
+    db.session.commit()
+
+    return jsonify(SchoolSchema().dump(school))
+
+
+@app.route('/school/delete', methods = ['DELETE'])
+def delete_school():
+    token = request.json['token']  if 'token' in request.json else None
+    id = request.json['id']  if 'id' in request.json else None
+
+    if token is None:
+        return jsonify(message='Invalid request: body must contain: `title` and `token`.'), 400
+
+    user = db.session.query(User).filter_by(token = token).first()
+    if user is None :
+        return jsonify(message='User not found'), 404
+    elif user.admin_stat == 0:
+        return jsonify(message='Unauthorised user'), 404
+
+    school = db.session.query(School).filter_by(id=id).first()
+    if school is None:
+        return jsonify(message='School not found'), 404
+
+    db.session.delete(school)
+    db.session.commit()
+
+    return  jsonify(message='done'), 204
+
+
 def send_email(email:str, message:str,  subject:str = ''):
     emailsend = config('AUTH_EMAIL')
     print(f'sending email: {emailsend} {email}')
