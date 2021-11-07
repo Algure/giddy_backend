@@ -1724,8 +1724,8 @@ def delete_school():
     token = request.json['token']  if 'token' in request.json else None
     id = request.json['id']  if 'id' in request.json else None
 
-    if token is None:
-        return jsonify(message='Invalid request: body must contain: `title` and `token`.'), 400
+    if token is None or id is None:
+        return jsonify(message='Invalid request: body must contain: `title` and `id`.'), 400
 
     user = db.session.query(User).filter_by(token = token).first()
     if user is None :
@@ -1741,6 +1741,23 @@ def delete_school():
     db.session.commit()
 
     return  jsonify(message='done'), 204
+
+
+@app.route('/school/fetch-all', methods = ['POST', 'GET'])
+def get_schools():
+    token = request.json['token']  if 'token' in request.json else None
+
+    if token is None:
+        return jsonify(message='Invalid request: body must contain: `title`.'), 400
+
+    user = db.session.query(User).filter_by(token = token).first()
+    if user is None :
+        return jsonify(message='User not found'), 404
+
+    schools = db.session.query(School).all()
+
+    return  jsonify(SchoolSchema().dump(schools, many=True))
+
 
 
 def send_email(email:str, message:str,  subject:str = ''):
