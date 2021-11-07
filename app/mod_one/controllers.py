@@ -281,6 +281,116 @@ def signup():
 
     return jsonify(UserSchema().dump(user)), 201
 
+
+
+@app.route('/profile/update', methods = ['PATCH'])
+def update_profile():
+    token = request.json['token'] if 'token' in request.json else None
+    id = request.json['id'] if 'id' in request.json else None
+    first_name = request.json['first_name'] if 'first_name' in request.json else None
+    last_name = request.json['last_name'] if 'last_name' in request.json else None
+    email = request.json['email'] if 'email' in request.json else None
+    education_level = request.json['education_level'] if 'education_level' in request.json else None
+    school_name = request.json['school_name'] if 'school_name' in request.json else None
+    school_id = request.json['school_id'] if 'school_id' in request.json else None
+    faculty_name = request.json['faculty_name'] if 'faculty_name' in request.json else None
+    faculty_id = request.json['faculty_id'] if 'faculty_id' in request.json else None
+    department_name = request.json['department_name'] if 'department_name' in request.json else None
+    department_id = request.json['department_id'] if 'department_id' in request.json else None
+    level = request.json['level'] if 'level' in request.json else None
+    matric_no = request.json['matric_no'] if 'matric_no' in request.json else None
+    date_of_birth = request.json['date_of_birth'] if 'date_of_birth' in request.json else None
+    phone_number = request.json['phone_number'] if 'phone_number' in request.json else None
+    pin = request.json['pin'] if 'pin' in request.json else None
+    course_form_url = request.json['course_form_url'] if 'course_form_url' in request.json else None
+
+    if token is None or  id is None:
+        return jsonify(message='Invalid request: body must contain: id and token'), 400
+
+    user = db.session.query(User).filter_by(token = token).first()
+    if user is None :
+        return jsonify(message='User not found'), 404
+
+    if first_name is not None and len(str( first_name)) > 0:
+        user.first_name = first_name
+
+    if last_name is not None and len(str( last_name)) > 0:
+        user.last_name = last_name
+
+    if email is not None and  user.email != str(email).strip():
+        email = str(email).strip()
+        if len(db.session.query(User).filter_by(email = email).all()) > 0:
+            return jsonify(message='Email in use'), 404
+        user.email = str(email)
+
+    if education_level is not None and len(str(education_level).strip())>0:
+        user.education_level = str(education_level).strip()
+
+    if school_name is not None :
+        school_name = str(school_name).strip()
+        if len(school_name)>0:
+            user.school_name = school_name
+
+    if school_id is not None :
+        school_id = str(school_id).strip()
+        if len(school_id)>0:
+            user.school_id = school_id
+
+    if faculty_name is not None :
+        faculty_name = str(faculty_name).strip()
+        if len(faculty_name)>0:
+            user.faculty_name = faculty_name
+
+    if faculty_id is not None :
+        faculty_id = str(faculty_id).strip()
+        if len(faculty_id)>0:
+            user.faculty_id = faculty_id
+
+    if department_name is not None :
+        department_name = str(department_name).strip()
+        if len(department_name)>0:
+            user.department_name = department_name
+
+    if department_id is not None :
+        department_id = str(department_id).strip()
+        if len(department_id)>0:
+            user.department_id = department_id
+
+    if level is not None :
+        level = str(level).strip()
+        if len(level)>0:
+            user.level = level
+
+    if matric_no is not None :
+        matric_no = str(matric_no).strip()
+        if len(matric_no)>0:
+            user.matric_no = matric_no
+
+    if date_of_birth is not None :
+        date_of_birth = str(date_of_birth).strip()
+        if len(date_of_birth)>0:
+            user.date_of_birth = date_of_birth
+
+    if phone_number is not None :
+        phone_number = str(phone_number).strip()
+        if len(phone_number)>0:
+            user.phone_number = phone_number
+
+    if pin is not None :
+        pin = str(pin).strip()
+        if len(pin)>0:
+            user.pin = pin
+
+    if course_form_url is not None :
+        course_form_url = str(course_form_url).strip()
+        if len(course_form_url)>0:
+            user.course_form_url = course_form_url
+
+    db.session.commit()
+
+    return jsonify(UserSchema().dump(user)) , 200
+
+
 # Create initaiate password retrieval
 @app.route('/initpassretrieval', methods  = ['POST'])
 def init_passretrieval():
