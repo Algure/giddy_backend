@@ -174,20 +174,18 @@ def fetch_analytics():
     start_time = datetime.datetime.utcnow() - datetime.timedelta(days = 7)
     if start is not None:
         date_data = str(start).split(',')
-        if len(date_data) >= 5:
+        if len(date_data) >= 3:
             try:
-                start_time = datetime.datetime(int(date_data[0]), int(date_data[1]), int(date_data[2]),
-                                               int(date_data[3]), int(date_data[4]))
+                start_time = datetime.datetime(int(date_data[0]), int(date_data[1]), int(date_data[2]))
             except:
                 return jsonify(message='Invalid request format: `start`.'), 400
 
     end_time = datetime.datetime.utcnow()
     if end is not None:
         date_data = str(start).split(',')
-        if len(date_data) >= 5:
+        if len(date_data) >= 3:
             try:
-                end_time = datetime.datetime(int(date_data[0]), int(date_data[1]), int(date_data[2]),
-                                             int(date_data[3]), int(date_data[4]))
+                end_time = datetime.datetime(int(date_data[0]), int(date_data[1]), int(date_data[2]))
             except:
                 return jsonify(message='Invalid request format: `end`.'), 400
 
