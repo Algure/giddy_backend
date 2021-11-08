@@ -42,7 +42,10 @@ migrate = Migrate(app, db)
 db.init_app(app) #Add this line Before migrate line
 with app.app_context():
     # db.create_all()
-    migrate.init_app(app, db)
+    if db.engine.url.drivername == 'sqlite':
+        migrate.init_app(app, db, render_as_batch=True)
+    else:
+        migrate.init_app(app, db)
 
 mail = Mail(app)
 

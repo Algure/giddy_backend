@@ -1976,7 +1976,7 @@ def delete_school():
 
 
 @app.route('/school/fetch-all', methods = ['POST', 'GET'])
-def get_schools():
+def get_all_schools():
     token = request.json['token']  if 'token' in request.json else None
 
     if token is None:
