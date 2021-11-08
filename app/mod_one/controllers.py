@@ -161,9 +161,9 @@ def login():
 
 @app.route('/admin/analytics', methods= ['POST', 'GET'])
 def fetch_analytics():
-    token = request.json['token']
-    start = request.json['start']
-    end = request.json['end']
+    token = request.json['token'] if 'token' in request.json else None
+    start = request.json['start'] if 'start' in request.json else None
+    end = request.json['end'] if 'end' in request.json else None
 
     user = db.session.query(User).filter_by(token=token).first()
     if user is None:
@@ -192,7 +192,7 @@ def fetch_analytics():
                 return jsonify(message='Invalid request format: `end`.'), 400
 
     eventslist = db.session.query(DownloadEvent).filter(DownloadEvent.user_id == str(user.id)). \
-        filter(DownloadEvent.timestamp >= start_time).filter(CalenderEvent.timestamp <= end_time).all()
+        filter(DownloadEvent.timestamp >= start_time).filter(DownloadEvent.timestamp <= end_time).all()
 
     loginlist = db.session.query(LoginEvent).filter(LoginEvent.user_id == str(user.id)). \
         filter(LoginEvent.timestamp >= start_time).filter(LoginEvent.timestamp <= end_time).all()
