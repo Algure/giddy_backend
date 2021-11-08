@@ -652,7 +652,7 @@ def fetch_user_cbts():
     if user is None:
         return jsonify(message='User not found'), 404
 
-    cbts = user.cbt_bookmarks.all()
+    cbts = user.cbt_bookmarks
 
     return jsonify(CBTSchema().dump(cbts,many=True))
 
@@ -665,7 +665,7 @@ def fetch_user_videos():
     if user is None:
         return jsonify(message='User not found'), 404
 
-    videos = user.video_bookmarks.all()
+    videos = user.video_bookmarks
 
     return jsonify(VideoSchema().dump(videos,many=True))
 
@@ -678,7 +678,12 @@ def fetch_user_courses():
     if user is None:
         return jsonify(message='User not found'), 404
 
-    courses = user.course_bookmarks.all()
+    # Artist.query.filter(Artist.albums.any(genre_id=genre.id)).all()
+    # courses_data = db.session.query('course_bookmarks_table').filter_in(users_id = user.id).all()
+    courses = user.course_bookmarks
+    # for data in courses_data:
+    #     course = db.session.query(Course).filter_in(id = data.course_id).first()
+    #     courses.append(course)
 
     return jsonify(CourseSchema().dump(courses,many=True))
 
@@ -691,7 +696,7 @@ def fetch_user_documents():
     if user is None:
         return jsonify(message='User not found'), 404
 
-    docs = user.document_bookmarks.all()
+    docs = user.document_bookmarks
 
     return jsonify(CourseSchema().dump(docs,many=True))
 
