@@ -551,7 +551,7 @@ def bookmark_course():
         return jsonify(message='Course not found'), 404
 
     if request.method == 'POST' and course not in user.course_bookmarks:
-        user.course_bookmarks.add(course)
+        user.course_bookmarks.append(course)
         db.session.commit()
     elif request.method == 'DELETE' and course in user.course_bookmarks:
         user.course_bookmarks.remove(course)
@@ -579,7 +579,7 @@ def bookmark_video():
         return jsonify(message='Video not found'), 404
 
     if request.method == 'POST' and video not in user.video_bookmarks:
-        user.video_bookmarks.add(video)
+        user.video_bookmarks.append(video)
         db.session.commit()
     elif request.method == 'DELETE' and video in user.video_bookmarks:
         user.video_bookmarks.remove(video)
@@ -607,7 +607,7 @@ def bookmark_document():
         return jsonify(message='Document not found'), 404
 
     if request.method == 'POST' and document not in user.document_bookmarks:
-        user.document_bookmarks.add(document)
+        user.document_bookmarks.append(document)
         db.session.commit()
     elif request.method == 'DELETE' and document in user.document_bookmarks:
         user.document_bookmarks.remove(document)
@@ -635,7 +635,7 @@ def bookmark_cbt():
         return jsonify(message='CBT not found'), 404
 
     if request.method == 'POST' and cbt not in user.cbt_bookmarks:
-        user.cbt_bookmarks.add(cbt)
+        user.cbt_bookmarks.append(cbt)
         db.session.commit()
     elif request.method == 'DELETE' and cbt in user.cbt_bookmarks:
         user.cbt_bookmarks.remove(cbt)
