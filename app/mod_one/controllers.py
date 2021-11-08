@@ -707,6 +707,10 @@ def create_course():
     pic_url = request.json['pic_url'] if 'pic_url' in request.json else None
     extras = request.json['extras'] if  'extras' in request.json else ""
 
+    dept_id = request.json['dept_id'] if  'dept_id' in request.json else ""
+    faculty_id = request.json['faculty_id'] if  'faculty_id' in request.json else ""
+    school_id = request.json['school_id'] if  'school_id' in request.json else ""
+
     if name is None or  token is None:
         return jsonify(message='Invalid request: body must contain: name and token'), 400
 
@@ -726,6 +730,9 @@ def create_course():
         uploader_id = str(user.id),
         is_published = False,
         total_tutorials = 0,
+        dept_id = str(dept_id),
+        faculty_id=str(faculty_id),
+        school_id=str(school_id),
         total_past_questions=0,
         total_videos = 0,
         clicks = 0,
