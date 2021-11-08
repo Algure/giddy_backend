@@ -736,8 +736,7 @@ def create_course():
         total_past_questions=0,
         total_videos = 0,
         clicks = 0,
-        extras = str(extras) if extras is not None else  '',
-    )
+        extras = str(extras) if extras is not None else  '')
 
     db.session.add(course)
     db.session.commit()

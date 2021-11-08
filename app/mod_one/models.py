@@ -263,7 +263,7 @@ class CalendarSchema( ma.Schema):
 class CourseSchema( ma.Schema):
     class Meta:
         fields = ['id', 'name', 'dept', 'school', 'description', 'is_published','total_videos','extras','total_past_questions',
-                  'category','total_tutorials', 'pic_url',  'clicks', 'uploader_id']
+                  'category','total_tutorials', 'pic_url', "dept_id", 'school_id', 'faculty_id' ,  'clicks', 'uploader_id']
 
 class AdSchema( ma.Schema):
     class Meta:
