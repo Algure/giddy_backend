@@ -182,13 +182,13 @@ def fetch_analytics():
 
     end_time = datetime.datetime.utcnow()
     if end is not None:
-        date_data = str(start).split(',')
+        date_data = str(end).split(',')
         if len(date_data) >= 3:
             try:
                 end_time = datetime.datetime(int(date_data[0]), int(date_data[1]), int(date_data[2]))
             except:
                 return jsonify(message='Invalid request format: `end`.'), 400
-
+    print(f'starttime: {start_time}, end_time: {end_time} ')
     eventslist = db.session.query(DownloadEvent).filter(DownloadEvent.user_id == str(user.id)). \
         filter(DownloadEvent.timestamp >= start_time).filter(DownloadEvent.timestamp <= end_time).all()
 
