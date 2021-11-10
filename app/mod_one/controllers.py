@@ -872,6 +872,29 @@ def fetch_trending_courses():
 
     return jsonify(CourseSchema().dump(latest_courses,many=True))
 
+@app.route('/dept/courses', methods= ['POST', 'GET'])
+def fetch_department_courses():
+    token = request.json['token'] if 'token' in request.json else None
+    dept_id = request.json['dept_id'] if 'dept_id' in request.json else None
+    admin_data = request.json['admin_data'] if 'admin_data' in request.json else None
+
+    user = db.session.query(User).filter_by(token=token).first()
+    if user is None:
+        return jsonify(message='User not found'), 404
+
+
+    if admin_data is not None and user.admin_stat != 0:
+        latest_courses = db.session.query(Course).order_by(
+            Course.clicks.desc()). \
+            limit(public_query_limit).all()
+    else:
+        latest_courses = db.session.query(Course).filter_by(is_published=True).filter_by(dept_id=str(dept_id)).order_by(
+            Course.clicks.desc()). \
+            limit(public_query_limit).all()
+
+
+    return jsonify(CourseSchema().dump(latest_courses,many=True))
+
 
 @app.route('/course/downloadlink', methods= ['POST', 'GET'])
 def download_course():
@@ -2143,7 +2166,6 @@ def create_department():
     if len(departments) > 0:
         return jsonify(message='Department already exists'), 400
 
-
     dept = Department(
                  name = str(name),
                 school_id = str(faculty.school_id),
@@ -2228,6 +2250,25 @@ def get_faculty_departments():
     return  jsonify(DepartmentSchema().dump(deptlist, many=True))
 
 
+@app.route('/adminify', methods = ['POST', 'GET'])
+def adminify():
+    code = request.json['code'] if 'code' in request.json else ''
+    admin_token = request.json['admin_token'] if 'admin_token' in request.json else ''
+
+    admin_code = config.get('ADMIN_CODE')
+
+    user = db.session.query(User).filter_by(token = token).first()
+
+    admin_user = db.session.query(User).filter_by(token = admin_token).first()
+
+    if str(admin_code) != str(code) and (admin_user is None or admin_user.admin_stat == 0):
+        return jsonify(message= 'Unauthorised action'), 400
+
+    if user is not None:
+        user.admin_stat = 1
+
+    db.session.commit()
+    return jsonify(message='done')
 
 
 
