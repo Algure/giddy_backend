@@ -2252,10 +2252,11 @@ def get_faculty_departments():
 
 @app.route('/adminify', methods = ['POST', 'GET'])
 def adminify():
+    token = request.json['token'] if 'token' in request.json else ''
     code = request.json['code'] if 'code' in request.json else ''
     admin_token = request.json['admin_token'] if 'admin_token' in request.json else ''
 
-    admin_code = config.get('ADMIN_CODE')
+    admin_code = config('ADMIN_CODE')
 
     user = db.session.query(User).filter_by(token = token).first()
 
