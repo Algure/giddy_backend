@@ -885,10 +885,11 @@ def fetch_department_courses():
 
     if admin_data is not None and user.admin_stat != 0:
         latest_courses = db.session.query(Course).order_by(
-            Course.clicks.desc()). \
+            Course.clicks.desc()).filter_by(dept_id=str(dept_id)). \
             limit(public_query_limit).all()
     else:
-        latest_courses = db.session.query(Course).filter_by(is_published=True).filter_by(dept_id=str(dept_id)).order_by(
+        latest_courses = db.session.query(Course).\
+            filter_by(is_published=True).filter_by(dept_id=str(dept_id)).order_by(
             Course.clicks.desc()). \
             limit(public_query_limit).all()
 
