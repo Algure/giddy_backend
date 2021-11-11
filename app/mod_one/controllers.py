@@ -752,8 +752,8 @@ def update_course():
     token = request.json['token'] if 'token' in request.json else None
     id = request.json['id'] if 'id' in request.json else None
     name = request.json['name'] if 'name' in request.json else None
-    dept = request.json['dept'] if 'dept' in request.json else None
-    school = request.json['school'] if 'school' in request.json else None
+    # dept = request.json['dept'] if 'dept' in request.json else None
+    # school = request.json['school'] if 'school' in request.json else None
     description = request.json['description'] if 'description' in request.json else None
     category = request.json['category'] if 'category' in request.json else None
     pic_url = request.json['pic_url'] if 'pic_url' in request.json else None
@@ -775,11 +775,11 @@ def update_course():
     if name is not None:
         course.name = name
 
-    if dept is not None:
-        course.dept = dept
-
-    if school is not None:
-        course.school = school
+    # if dept is not None:
+    #     course.dept = dept
+    #
+    # if school is not None:
+    #     course.school = school
 
     if description is not None:
         course.description = description
