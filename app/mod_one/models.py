@@ -131,6 +131,7 @@ class Video(db.Model):
     uploader_id = Column(String)
     clicks = Column(Integer)
     extras = Column(String)
+    date = Column(DateTime)
     video_id = db.Column(db.Integer, db.ForeignKey('video.id'))
 
 
@@ -146,6 +147,7 @@ class Document(db.Model):
     url = Column(String)
     clicks = Column(Integer)
     extras = Column(String)
+    date = Column(DateTime)
     document_id = db.Column(db.Integer, db.ForeignKey('document.id'))
 
 
@@ -158,6 +160,7 @@ class CBT(db.Model):
     data = Column(String)
     course_id = Column(String)
     clicks = Column(Integer)
+    date = Column(DateTime)
 
 
 class News(db.Model):
@@ -271,7 +274,7 @@ class AdSchema( ma.Schema):
 
 class CBTSchema( ma.Schema):
     class Meta:
-        fields = ['id', 'name', 'clicks', 'description']
+        fields = ['id', 'name', 'clicks', 'description', 'date']
 
 class NewsSchema( ma.Schema):
     class Meta:
@@ -279,11 +282,11 @@ class NewsSchema( ma.Schema):
 
 class DocumentSchema( ma.Schema):
     class Meta:
-        fields = ['id', 'name', 'description', 'doctype', 'size', 'clicks', 'extras']
+        fields = ['id', 'name', 'description', 'doctype', 'size', 'date', 'clicks', 'extras']
 
 class VideoSchema( ma.Schema):
     class Meta:
-        fields = ['id', 'name', 'size', 'time_in_secs', 'extras',  'pic_url', 'course_id', 'clicks', 'uploader_id']
+        fields = ['id', 'name', 'size', 'time_in_secs', 'extras',  'pic_url', 'date','course_id', 'clicks', 'uploader_id']
 
 class PlanetSchema( ma.Schema):
     class Meta:

@@ -971,6 +971,7 @@ def create_video():
                   pic_url = str(pic_url),
                   course_id = course_id,
                   uploader_id = user.id,
+                  date = datetime.datetime.utcnow(),
                   clicks = 0,
                   extras = '')
 
@@ -1031,6 +1032,8 @@ def update_video():
             video.time_in_secs = time_in_secs
         except :
             print('Invalid time_in_secs')
+
+    video.date = datetime.datetime.utcnow()
 
     db.session.commit()
 
@@ -1183,7 +1186,8 @@ def create_document():
                   doctype = str(doctype),
                     url = str(url),
                   clicks = 0,
-                  extras = extras if extras is not None else '')
+        date=datetime.datetime.utcnow(),
+        extras = extras if extras is not None else '')
 
     db.session.add(document)
     db.session.commit()
@@ -1235,6 +1239,8 @@ def update_document():
 
     if extras is not None:
         document.extras = extras
+
+    date = datetime.datetime.utcnow()
 
     db.session.commit()
 
@@ -1371,6 +1377,7 @@ def create_cbt():
                   data = str(data) if data is not None else '',
                   description = str(description) if description is not None else '',
                   course_id = str(course_id) if course_id is not None else '',
+                  date = datetime.datetime.utcnow(),
                   clicks = 0)
 
     db.session.add(cbt)
@@ -1412,6 +1419,8 @@ def update_cbt():
 
     if description is not None:
         cbt.description = str(description)
+
+    cbt.date = datetime.datetime.utcnow()
 
     db.session.commit()
 
