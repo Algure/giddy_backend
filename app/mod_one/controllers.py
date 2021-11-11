@@ -1184,6 +1184,7 @@ def create_document():
                   description = description if description is not None else '',
                   size = str(size),
                   doctype = str(doctype),
+                    course_id = course_id,
                     url = str(url),
                   clicks = 0,
         date=datetime.datetime.utcnow(),
@@ -1346,7 +1347,9 @@ def fetch_course_documents():
     if user is None:
         return jsonify(message='User not found'), 404
 
-    docs = db.session.query(Document).filter_by(course_id = course_id).all()
+    course = db.session.query(Course).filter_by(id = int(course_id)).first()
+    docs = course.tutorials + course.past_questions
+
 
     return jsonify(DocumentSchema().dump(docs,many=True))
 

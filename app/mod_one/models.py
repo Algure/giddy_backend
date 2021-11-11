@@ -282,7 +282,7 @@ class NewsSchema( ma.Schema):
 
 class DocumentSchema( ma.Schema):
     class Meta:
-        fields = ['id', 'name', 'description', 'doctype', 'size', 'date', 'clicks', 'extras']
+        fields = ['id', 'name', 'description', 'course_id', 'doctype', 'size', 'date', 'clicks', 'extras']
 
 class VideoSchema( ma.Schema):
     class Meta:
