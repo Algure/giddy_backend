@@ -1513,7 +1513,7 @@ def download_cbt():
 
     db.session.commit()
 
-    return jsonify({'link': cbt.url})
+    return jsonify({'link': cbt.data})
 
 
 # News APIs
