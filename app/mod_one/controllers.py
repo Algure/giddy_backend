@@ -1240,7 +1240,7 @@ def update_document():
     if extras is not None:
         document.extras = extras
 
-    date = datetime.datetime.utcnow()
+    document.date = datetime.datetime.utcnow()
 
     db.session.commit()
 
