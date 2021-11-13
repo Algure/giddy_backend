@@ -2298,7 +2298,7 @@ def get_news_tags():
 
     return jsonify(news_topics)
 
-@app.route('/news/topics', methods = ['POST'])
+@app.route('/news/update', methods = ['POST'])
 def update_news_topics():
     token = request.json['token'] if 'token' in request.json else ''
     topics = request.json['topics'] if 'topics' in request.json else ''
