@@ -2312,6 +2312,7 @@ def update_news_topics():
 
     return jsonify(message='done')
 
+#TODO: Seed database
 
 
 
