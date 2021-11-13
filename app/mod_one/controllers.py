@@ -45,6 +45,10 @@ from app import mail
 authentication_minutes = 50
 public_query_limit = 50
 
+news_topics = ['forex', 'programming', 'data science', 'ui/ux', 'web design','iot','crypto currency',
+               'baking', 'forex', 'programming', 'data science', 'web design',
+               'iot', 'robotics']
+
 def destroyVerificationEvent(code:str):
     print(f'job ran: {code}')
     try:
@@ -2283,6 +2287,18 @@ def adminify():
 
     db.session.commit()
     return jsonify(message='done')
+
+@app.route('/news/preferences', methods = ['POST', 'GET'])
+def get_news_tags():
+    token = request.json['token'] if 'token' in request.json else ''
+
+    user = db.session.query(User).filter_by(token = token).first()
+    if user is None:
+        return jsonify(message='User not found'), 404
+
+    return jsonify(news_topics)
+
+
 
 
 

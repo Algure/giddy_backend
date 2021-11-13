@@ -248,6 +248,8 @@ class User(db.Model):
     course_form_url = Column(String)
 
     ######################
+    news_prefs = Column(String) # Serialised news preferences
+    ######################
     reflink = Column(String)
     video_bookmarks = relationship("Video", secondary= video_bookmarks_table)
     document_bookmarks =  relationship("Document", secondary = document_bookmarks_table)
@@ -257,7 +259,7 @@ class User(db.Model):
 
 class UserSchema(ma.Schema):
     class Meta:
-        fields = ['id', 'first_name', 'last_name', 'email','admin_stat','token','reflink','course_form_url','pin','phone_number','date_of_birth','matric_no','level','department_id','department_name','faculty_id','faculty_name','school_id','school_name','verification_date','education_level','verification_status']
+        fields = ['id', 'first_name', 'last_name', 'email', 'news_prefs', 'admin_stat','token','reflink','course_form_url','pin','phone_number','date_of_birth','matric_no','level','department_id','department_name','faculty_id','faculty_name','school_id','school_name','verification_date','education_level','verification_status']
 
 class CalendarSchema( ma.Schema):
     class Meta:
