@@ -2298,6 +2298,23 @@ def get_news_tags():
 
     return jsonify(news_topics)
 
+@app.route('/news/topics', methods = ['POST'])
+def update_news_topics():
+    token = request.json['token'] if 'token' in request.json else ''
+    topics = request.json['topics'] if 'topics' in request.json else ''
+
+    user = db.session.query(User).filter_by(token=token).first()
+    if user is None:
+        return jsonify(message='User with token not found'), 404
+
+    user.news_prefs = topics
+    db.session.commit()
+
+    return jsonify(message='done')
+
+
+
+
 
 
 
