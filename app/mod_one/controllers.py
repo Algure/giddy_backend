@@ -258,9 +258,6 @@ def seed_database():
     db.session.commit()
 
 
-
-
-
 @app.before_first_request
 def initialises():
     if scheduler.state != STATE_RUNNING:
