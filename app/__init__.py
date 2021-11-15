@@ -31,7 +31,6 @@ migrate = Migrate(app, db)
 # cors = CORS(app)
 cors = CORS(app, resources={r"/foo": {"origins": "*"}})
 
-
 # Configurations
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///'+ os.path.join(basedir, 'planets.db')
 app.config['SCHEDULER_API_ENABLED'] = True
@@ -68,7 +67,7 @@ def not_found(error):
 from app.mod_one.controllers import mod_one as version1
 
 # Register blueprint(s)
-app.register_blueprint(version1)
+app.register_blueprint(version1, )
 
 wa.whoosh_index(app, Course)
 wa.whoosh_index(app, Document)

@@ -1,4 +1,5 @@
 # Import the database object from the main app module
+from apscheduler.schedulers.base import STATE_RUNNING
 from decouple import config
 
 from app import db
@@ -48,7 +49,7 @@ public_query_limit = 50
 news_topics = ['forex', 'programming', 'data science', 'ui/ux', 'web design','iot','crypto currency',
                'baking', 'robotics']
 
-def destroyVerificationEvent(code:str):
+def destroy_verification_event(code:str):
     print(f'job ran: {code}')
     try:
         verification = db.session.query(Verification).filter_by(code=code).first()
@@ -69,12 +70,12 @@ def gen_random_code(str_size):
     return ''.join(random.choice(allowed_chars) for x in range(str_size))
 
 
-def random_string_generator(str_size):
+def random_string_generator(str_size) -> str:
     allowed_chars='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.,;!@#$%^&*_?><0123456789'
     return ''.join(random.choice(allowed_chars) for x in range(str_size))
 
 
-def encrypt(raw_password, salt='b57b5c1c5ae168997a33b908f3bb315f'):
+def encrypt(raw_password, salt='b57b5c1c5ae168997a33b908f3bb315f') -> str:
     # generate new salt, and hash a password
     salt_size = 32
     rounds = 12000
@@ -99,7 +100,7 @@ def passlib_encryption_verify(raw_password, enc_password):
     return response
 
 
-def send_email(email:str, message:str,  subject:str = ''):
+def send_email(email:str, message:str,  subject:str = '') -> None:
     emailsend = config('AUTH_EMAIL')
     print(f'sending email: {emailsend} {email}')
     msg = Message( subject=subject, body= message,
@@ -118,8 +119,8 @@ def seed_database():
     'https://images.unsplash.com/photo-1519985176271-adb1088fa94c?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=a0c8d632e977f94e5d312d9893258f59&auto=format&fit=crop&w=1355&q=80'
     ]
 
-    db_drop()
-    db_create_all()
+    db.drop_all()
+    db.create_all()
     # Create 5 schools
     for i in range(1,6):
         school = School(name= f'School {i}00{i}' )
@@ -237,18 +238,10 @@ def seed_database():
             db.session.commit()
 
 
-
-
-
-
-
-
-
-
-
 @app.before_first_request
 def initialises():
-    scheduler.start()
+    if scheduler.state != STATE_RUNNING:
+        scheduler.start()
     seed_database()
 
 
@@ -619,7 +612,7 @@ def init_passretrieval():
     db.session.add(verification)
     db.session.commit()
 
-    scheduler.add_job(destroyVerificationEvent, 'interval', id=code, minutes=authentication_minutes, args = [code])
+    scheduler.add_job(destroy_verification_event, 'interval', id=code, minutes=authentication_minutes, args = [code])
     send_email(email,
                f'Hello {userlist[0].first_name},\n\nSorry about your password. Continue your password retrieval with this code.\n\n'
                f' {code}.\n\n'
