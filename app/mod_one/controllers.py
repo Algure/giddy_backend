@@ -181,7 +181,6 @@ def seed_database():
             db.session.add(course)
     db.session.commit()
 
-
     for course in db.session.query(Course).all():
         # Create 5 videos per course
         # Create 5 past questions per course
@@ -237,13 +236,35 @@ def seed_database():
             course.cbt.append(cbt)
             db.session.commit()
 
+    # : Create News objects- 10
+    # : Create Advert objects- 10
+    for i in range(1, 10):
+        news = News(
+            title=f'News {i}000{i}',
+            description=gen_random_code(100),
+            user_id='',
+            extras= random.choice(piclist),
+            timestamp=datetime.datetime.utcnow())
+        db.session.add(news)
+
+    for i in range(1, 10):
+        advert = Advert(
+            text=f'Advert {i}000',
+            image_url=random.choice(piclist) if i <=5 else '',
+            action_link=random.choice(piclist),
+            mode= 'text' if i <=5 else 'image',
+            timestamp=datetime.datetime.utcnow())
+        db.session.add(advert)
+    db.session.commit()
+
+
+
+
 
 @app.before_first_request
 def initialises():
     if scheduler.state != STATE_RUNNING:
         scheduler.start()
-    seed_database()
-
 
 @app.cli.command('db_create')
 def db_create_all():
