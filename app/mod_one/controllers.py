@@ -46,8 +46,7 @@ authentication_minutes = 50
 public_query_limit = 50
 
 news_topics = ['forex', 'programming', 'data science', 'ui/ux', 'web design','iot','crypto currency',
-               'baking', 'forex', 'programming', 'data science', 'web design',
-               'iot', 'robotics']
+               'baking', 'robotics']
 
 def destroyVerificationEvent(code:str):
     print(f'job ran: {code}')
@@ -62,6 +61,7 @@ def destroyVerificationEvent(code:str):
         scheduler.remove_job(code)
     except  Exception:
         print(f'job: {code} does not exist')
+
 
 
 def gen_random_code(str_size):
@@ -108,10 +108,148 @@ def send_email(email:str, message:str,  subject:str = ''):
     )
     mail.send(msg)
 
+def seed_database():
+    piclist =  [
+    'https://images.unsplash.com/photo-1520342868574-5fa3804e551c?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=6ff92caffcdd63681a35134a6770ed3b&auto=format&fit=crop&w=1951&q=80',
+    'https://images.unsplash.com/photo-1522205408450-add114ad53fe?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=368f45b0888aeb0b7b08e3a1084d3ede&auto=format&fit=crop&w=1950&q=80',
+    'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=94a1e718d89ca60a6337a6008341ca50&auto=format&fit=crop&w=1950&q=80',
+    'https://images.unsplash.com/photo-1523205771623-e0faa4d2813d?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=89719a0d55dd05e2deae4120227e6efc&auto=format&fit=crop&w=1953&q=80',
+    'https://images.unsplash.com/photo-1508704019882-f9cf40e475b4?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=8c6e5e3aba713b17aa1fe71ab4f0ae5b&auto=format&fit=crop&w=1352&q=80',
+    'https://images.unsplash.com/photo-1519985176271-adb1088fa94c?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=a0c8d632e977f94e5d312d9893258f59&auto=format&fit=crop&w=1355&q=80'
+    ]
+
+    db_drop()
+    db_create_all()
+    # Create 5 schools
+    for i in range(1,6):
+        school = School(name= f'School {i}00{i}' )
+        db.session.add(school)
+    db.session.commit()
+
+    #Create 5 faculties per school
+    for school in db.session.query(School).all():
+        faculty = Faculty(
+            name=str('Engineering'),
+            school_id=str(school.id))
+        db.session.add(faculty)
+        faculty = Faculty(
+            name=str('Sciences'),
+            school_id=str(school.id))
+        db.session.add(faculty)
+        faculty = Faculty(
+            name=str('Health Tech'),
+            school_id=str(school.id))
+        db.session.add(faculty)
+        faculty = Faculty(
+            name=str('Commerce'),
+            school_id=str(school.id))
+        db.session.add(faculty)
+    db.session.commit()
+
+    # Create 5 departments per faculty
+    for faculty in db.session.query(Faculty).all():
+        for i in range(1,6):
+            dept = Department(
+                name=str(f'Department {i}00{i}'),
+                school_id=str(faculty.school_id),
+                faculty_id=str(faculty.id))
+            db.session.add(dept)
+        db.session.commit()
+
+    # Create 5 courses per department
+    # Publish courses
+    for dept in db.session.query(Department).all():
+        for i in range(1,6):
+            course = Course(
+                name= f'Course {i}',
+                dept=str(dept.name),
+                school=str(school.name),
+                description=gen_random_code(1000),
+                category=gen_random_code(10),
+                pic_url=random.choice(piclist),
+                uploader_id=str(0),
+                is_published=True,
+                total_tutorials=5,
+                dept_id=str(dept.id),
+                faculty_id=str(dept.faculty_id),
+                school_id=str(dept.school_id),
+                total_past_questions=5,
+                total_videos=5,
+                clicks=5,
+                extras='')
+            db.session.add(course)
+    db.session.commit()
+
+
+    for course in db.session.query(Course).all():
+        # Create 5 videos per course
+        # Create 5 past questions per course
+        # Create 5 tutorials per course
+        # Create 5 CBT per course
+        for i in range(1,6):
+            video = Video(name=f'Video {i}',
+                          url=random.choice(piclist),
+                          size= '3MB',
+                          time_in_secs='11',
+                          pic_url='https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4',
+                          course_id=str(course.id),
+                          uploader_id='0',
+                          date=datetime.datetime.utcnow(),
+                          clicks=0,
+                          extras='')
+            db.session.add(video)
+
+            document = Document(
+                name= f'Past Question {i}',
+                description='',
+                size='3 MB',
+                doctype='pq',
+                course_id=course.id,
+                url='',
+                clicks=0,
+                date=datetime.datetime.utcnow(),
+                extras='')
+            db.session.add(document)
+            tut = Document(
+                name= f'Tutorial {i}',
+                description='',
+                size='3 MB',
+                doctype='tut',
+                course_id=course.id,
+                url='',
+                clicks=0,
+                date=datetime.datetime.utcnow(),
+                extras='')
+            db.session.add(tut)
+            cbt = CBT(name=f'Computer Based Test {i}',
+                      data='',
+                      description=gen_random_code(100),
+                      course_id=str(course.id),
+                      date=datetime.datetime.utcnow(),
+                      clicks=0)
+            db.session.add(cbt)
+            db.session.commit()
+
+            course.past_questions.append(document)
+            course.tutorials.append(tut)
+            course.videos.append(video)
+            course.cbt.append(cbt)
+            db.session.commit()
+
+
+
+
+
+
+
+
+
+
 
 @app.before_first_request
 def initialises():
     scheduler.start()
+    seed_database()
 
 
 @app.cli.command('db_create')
