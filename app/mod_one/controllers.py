@@ -424,6 +424,7 @@ def signup():
                     token = token,
                     reflink = reflink,
                     verification_status = 'update',
+                    sign_up_date = datetime.datetime.utcnow(),
                     admin_stat = 0)
 
     db.session.add(user)
@@ -472,6 +473,8 @@ def verify_user():
         user.verification_status != 'verified':
 
         user.verification_status = 'verified'
+        user.verify_date = datetime.datetime.utcnow(),
+
     else:
         return jsonify('Incomplete profile'), 400
 

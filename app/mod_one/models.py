@@ -246,6 +246,8 @@ class User(db.Model):
     phone_number = Column(String)
     pin = Column(String)
     course_form_url = Column(String)
+    sign_up_date = Column(DateTime)
+    verify_date = Column(DateTime)
 
     ######################
     news_prefs = Column(String) # Serialised news preferences
@@ -259,7 +261,7 @@ class User(db.Model):
 
 class UserSchema(ma.Schema):
     class Meta:
-        fields = ['id', 'first_name', 'last_name', 'email', 'news_prefs', 'admin_stat','token','reflink','course_form_url','pin','phone_number','date_of_birth','matric_no','level','department_id','department_name','faculty_id','faculty_name','school_id','school_name','verification_date','education_level','verification_status']
+        fields = ['id', 'first_name', 'last_name', 'email', 'news_prefs','verify_date','sign_up_date', 'admin_stat','token','reflink','course_form_url','pin','phone_number','date_of_birth','matric_no','level','department_id','department_name','faculty_id','faculty_name','school_id','school_name','verification_date','education_level','verification_status']
 
 class CalendarSchema( ma.Schema):
     class Meta:
