@@ -129,60 +129,60 @@ def seed_database():
     db.session.commit()
     print('seeded courses')
 
-    for course in db.session.query(Course).all():
-        # Create 5 videos per course
-        # Create 5 past questions per course
-        # Create 5 tutorials per course
-        # Create 5 CBT per course˚
-        for i in range(1,2):
-            video = Video(name=f'Video {i}',
-                          url=random.choice(piclist),
-                          size= '3MB',
-                          time_in_secs='11',
-                          pic_url='https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4',
-                          course_id=str(course.id),
-                          uploader_id='0',
-                          date=datetime.datetime.utcnow(),
-                          clicks=0,
-                          extras='')
-            db.session.add(video)
-
-            document = Document(
-                name= f'Past Question {i}',
-                description='',
-                size='3 MB',
-                doctype='pq',
-                course_id=course.id,
-                url='',
-                clicks=0,
-                date=datetime.datetime.utcnow(),
-                extras='')
-            db.session.add(document)
-            tut = Document(
-                name= f'Tutorial {i}',
-                description='',
-                size='3 MB',
-                doctype='tut',
-                course_id=course.id,
-                url='',
-                clicks=0,
-                date=datetime.datetime.utcnow(),
-                extras='')
-            db.session.add(tut)
-            cbt = CBT(name=f'Computer Based Test {i}',
-                      data='',
-                      description=gen_random_code(100),
-                      course_id=str(course.id),
-                      date=datetime.datetime.utcnow(),
-                      clicks=0)
-            db.session.add(cbt)
-            db.session.commit()
-
-            course.past_questions.append(document)
-            course.tutorials.append(tut)
-            course.videos.append(video)
-            course.cbt.append(cbt)
-            db.session.commit()
+    # for course in db.session.query(Course).all():
+    #     # Create 5 videos per course
+    #     # Create 5 past questions per course
+    #     # Create 5 tutorials per course
+    #     # Create 5 CBT per course˚
+    #     for i in range(1,2):
+    #         video = Video(name=f'Video {i}',
+    #                       url=random.choice(piclist),
+    #                       size= '3MB',
+    #                       time_in_secs='11',
+    #                       pic_url='https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4',
+    #                       course_id=str(course.id),
+    #                       uploader_id='0',
+    #                       date=datetime.datetime.utcnow(),
+    #                       clicks=0,
+    #                       extras='')
+    #         db.session.add(video)
+    #
+    #         document = Document(
+    #             name= f'Past Question {i}',
+    #             description='',
+    #             size='3 MB',
+    #             doctype='pq',
+    #             course_id=course.id,
+    #             url='',
+    #             clicks=0,
+    #             date=datetime.datetime.utcnow(),
+    #             extras='')
+    #         db.session.add(document)
+    #         tut = Document(
+    #             name= f'Tutorial {i}',
+    #             description='',
+    #             size='3 MB',
+    #             doctype='tut',
+    #             course_id=course.id,
+    #             url='',
+    #             clicks=0,
+    #             date=datetime.datetime.utcnow(),
+    #             extras='')
+    #         db.session.add(tut)
+    #         cbt = CBT(name=f'Computer Based Test {i}',
+    #                   data='',
+    #                   description=gen_random_code(100),
+    #                   course_id=str(course.id),
+    #                   date=datetime.datetime.utcnow(),
+    #                   clicks=0)
+    #         db.session.add(cbt)
+    #         db.session.commit()
+    #
+    #         course.past_questions.append(document)
+    #         course.tutorials.append(tut)
+    #         course.videos.append(video)
+    #         course.cbt.append(cbt)
+    #         db.session.commit()
     print('seeded course components')
 
     # : Create News objects- 10
