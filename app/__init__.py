@@ -133,8 +133,8 @@ def seed_database():
         # Create 5 videos per course
         # Create 5 past questions per course
         # Create 5 tutorials per course
-        # Create 5 CBT per course
-        for i in range(1,6):
+        # Create 5 CBT per course˚
+        for i in range(1,2):
             video = Video(name=f'Video {i}',
                           url=random.choice(piclist),
                           size= '3MB',
@@ -216,7 +216,7 @@ with app.app_context():
         migrate.init_app(app, db, render_as_batch=True)
     else:
         migrate.init_app(app, db)
-    # seed_database()
+    seed_database()
 
 
 mail = Mail(app)
