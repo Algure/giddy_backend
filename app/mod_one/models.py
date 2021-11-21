@@ -246,6 +246,7 @@ class User(db.Model):
     phone_number = Column(String)
     pin = Column(String)
     course_form_url = Column(String)
+    ######
     sign_up_date = Column(DateTime)
     verify_date = Column(DateTime)
 
