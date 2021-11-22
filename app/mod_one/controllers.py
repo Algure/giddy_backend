@@ -2050,24 +2050,29 @@ def search_tables():
         return jsonify(message='Invalid request text'), 400
 
     user = db.session.query(User).filter_by(token=token).first()
-    if user is None:
-        return jsonify(message='User not found'), 404
+    # if user is None:
+    #     return jsonify(message='User not found'), 404
     courses = []
     cbts = []
     docs = []
     videos = []
 
     if 'course' in tables or tables is None or str(tables).strip() == '':
-        courses = Course.query.whoosh_search(text).all()
+        # courses = Course.query. filter(str(text))
+        courses = db.session.query(Course).filter(Course.name.like("%" + text + "%") ).all()
+        # users = User.query.paginate(page, per_page, error_out=False)
 
     if 'cbt' in tables or tables is None or str(tables).strip() == '':
-        cbts = CBT.query.whoosh_search(text).limit(public_query_limit).all()
+        # cbts = db.session.query(CBT).whoosh_search(text).limit(public_query_limit).all()
+        cbts = db.session.query(CBT).filter(CBT.name.like("%" + text + "%")).all()
 
     if 'doc' in tables or tables is None or str(tables).strip() == '':
-        docs = Document.query.whoosh_search(text).limit(public_query_limit).all()
+        # docs = db.session.query(Document).whoosh_search(text).limit(public_query_limit).all()
+        docs = db.session.query(Document).filter(Document.name.like("%" + text + "%")).all()
 
     if 'video' in tables or tables is None or str(tables).strip() == '':
-        videos = Video.query.whoosh_search(text).limit(public_query_limit).all()
+        # videos = db.session.query(Video).whoosh_search(text).limit(public_query_limit).all()
+        videos = db.session.query(Video).filter(Video.name.like("%" + text + "%")).paginate.all()
 
     videos = list(VideoSchema().dump(videos, many= True))
     cbts = list(CBTSchema().dump(cbts, many= True))

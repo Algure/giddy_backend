@@ -1,4 +1,6 @@
 # Import the database object (db) from the main application module
+import whooshalchemy
+from flask_whooshalchemy import whoosh_index
 from sqlalchemy.orm import relationship
 
 from flask_marshmallow import Marshmallow

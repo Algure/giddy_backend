@@ -26,6 +26,7 @@ from .mod_one.models import db
 from .mod_one.models import ma
 from .mod_one.models import Base
 
+
 ma.init_app(app)
 migrate = Migrate(app, db)
 # cors = CORS(app)
@@ -44,14 +45,12 @@ app.config['MAIL_USE_SSL'] = False
 app.config['WHOOSH_BASE'] = 'whoosh'
 app.config['CORS_HEADERS'] = 'Content-Type'
 
-
 db.init_app(app) #Add this line Before migrate line
 
 
 def gen_random_code(str_size)-> str:
     allowed_chars='0123456789'
     return ''.join(random.choice(allowed_chars) for x in range(str_size))
-
 
 def seed_database():
     piclist =  [
@@ -209,9 +208,14 @@ def seed_database():
 
     db.session.commit()
 
-
 with app.app_context():
     # db.create_all()
+    wa.whoosh_index(app, Course)
+    wa.whoosh_index(app, Document)
+    wa.whoosh_index(app, CBT)
+    wa.whoosh_index(app, Video)
+
+
     if db.engine.url.drivername == 'sqlite':
         migrate.init_app(app, db, render_as_batch=True)
     else:
@@ -234,8 +238,3 @@ from app.mod_one.controllers import mod_one as version1, gen_random_code
 
 # Register blueprint(s)
 app.register_blueprint(version1, )
-
-wa.whoosh_index(app, Course)
-wa.whoosh_index(app, Document)
-wa.whoosh_index(app, Video)
-wa.whoosh_index(app, CBT)
