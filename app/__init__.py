@@ -215,7 +215,6 @@ with app.app_context():
     wa.whoosh_index(app, CBT)
     wa.whoosh_index(app, Video)
 
-
     if db.engine.url.drivername == 'sqlite':
         migrate.init_app(app, db, render_as_batch=True)
     else:

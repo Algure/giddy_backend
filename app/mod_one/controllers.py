@@ -2050,8 +2050,8 @@ def search_tables():
         return jsonify(message='Invalid request text'), 400
 
     user = db.session.query(User).filter_by(token=token).first()
-    # if user is None:
-    #     return jsonify(message='User not found'), 404
+    if user is None:
+        return jsonify(message='User not found'), 404
     courses = []
     cbts = []
     docs = []
@@ -2072,7 +2072,7 @@ def search_tables():
 
     if 'video' in tables or tables is None or str(tables).strip() == '':
         # videos = db.session.query(Video).whoosh_search(text).limit(public_query_limit).all()
-        videos = db.session.query(Video).filter(Video.name.like("%" + text + "%")).paginate.all()
+        videos = db.session.query(Video).filter(Video.name.like("%" + text + "%")).all()
 
     videos = list(VideoSchema().dump(videos, many= True))
     cbts = list(CBTSchema().dump(cbts, many= True))
