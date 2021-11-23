@@ -64,7 +64,7 @@ def seed_database():
     db.drop_all()
     db.create_all()
     # Create 5 schools
-    for i in range(1,6):
+    for i in range(1,2):
         school = School(name= f'School {i}00{i}' )
         db.session.add(school)
     db.session.commit()
@@ -76,19 +76,18 @@ def seed_database():
             name=str('Engineering'),
             school_id=str(school.id))
         db.session.add(faculty)
-        faculty = Faculty(
-            name=str('Sciences'),
-            school_id=str(school.id))
+        # faculty = Faculty(
+        #     name=str('Sciences'),
+        #     school_id=str(school.id))
+        # db.session.add(faculty)
+        # faculty = Faculty(
+        #     name=str('Health Tech'),
+        #     school_id=str(school.id))
+        # db.session.add(faculty)
+        # faculty = Faculty(
+        #     name=str('Commerce'),
+        #     school_id=str(school.id))
         db.session.add(faculty)
-        faculty = Faculty(
-            name=str('Health Tech'),
-            school_id=str(school.id))
-        db.session.add(faculty)
-        faculty = Faculty(
-            name=str('Commerce'),
-            school_id=str(school.id))
-        db.session.add(faculty)
-    db.session.commit()
     print('seeded faculties')
 
     # Create 5 departments per faculty
@@ -127,7 +126,21 @@ def seed_database():
     db.session.commit()
     print('seeded courses')
 
-    # for course in db.session.query(Course).all():
+    for course in db.session.query(Course).all():
+        video = Video(name=f'Video {i}',
+                    url=random.choice(piclist),
+                    size= '3MB',
+                    time_in_secs='11',
+                    pic_url='https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4',
+                    course_id=str(course.id),
+                    uploader_id='0',
+                    date=datetime.datetime.utcnow(),
+                    clicks=0,
+                    extras='')
+        db.session.add(video)
+        course.videos.append(video)
+        db.session.commit()
+
     #     # Create 5 videos per course
     #     # Create 5 past questions per course
     #     # Create 5 tutorials per course
