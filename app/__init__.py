@@ -207,6 +207,7 @@ def seed_database():
 
     db.session.commit()
 
+
 with app.app_context():
     # db.create_all()
     wa.whoosh_index(app, Course)
@@ -219,7 +220,6 @@ with app.app_context():
     else:
         migrate.init_app(app, db)
     seed_database()
-
 
 mail = Mail(app)
 
