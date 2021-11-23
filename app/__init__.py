@@ -61,7 +61,6 @@ def seed_database():
     'https://images.unsplash.com/photo-1508704019882-f9cf40e475b4?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=8c6e5e3aba713b17aa1fe71ab4f0ae5b&auto=format&fit=crop&w=1352&q=80',
     'https://images.unsplash.com/photo-1519985176271-adb1088fa94c?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=a0c8d632e977f94e5d312d9893258f59&auto=format&fit=crop&w=1355&q=80'
     ]
-
     db.drop_all()
     db.create_all()
     # Create 5 schools
@@ -94,7 +93,7 @@ def seed_database():
 
     # Create 5 departments per faculty
     for faculty in db.session.query(Faculty).all():
-        for i in range(1,6):
+        for i in range(1,2):
             dept = Department(
                 name=str(f'Department {i}00{i}'),
                 school_id=str(faculty.school_id),
@@ -106,7 +105,7 @@ def seed_database():
     # Create 5 courses per department
     # Publish courses
     for dept in db.session.query(Department).all():
-        for i in range(1,6):
+        for i in range(1,2):
             course = Course(
                 name= f'Course {i}',
                 dept=str(dept.name),
