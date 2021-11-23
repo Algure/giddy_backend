@@ -1,3 +1,5 @@
+# Import the database object (db) from the main application module
+from sqlalchemy.orm import relationship
 
 from flask_marshmallow import Marshmallow
 from flask_sqlalchemy import SQLAlchemy

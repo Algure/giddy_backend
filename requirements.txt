@@ -29,3 +29,4 @@ tzdata==2021.5
 tzlocal==4.0.2
 Werkzeug==2.0.2
 Whoosh==2.6.0
+WhooshAlchemy==0.3.1

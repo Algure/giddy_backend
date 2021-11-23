@@ -2,16 +2,13 @@
 from apscheduler.schedulers.base import STATE_RUNNING
 from decouple import config
 
-from app import db
 
-from apscheduler.schedulers.background import BackgroundScheduler
 from flask_mail import Mail, Message
 from flask import Flask, render_template, jsonify, request, Blueprint
 import datetime
 import hashlib
 import random
 
-# Import module models (i.e. User)
 from app.mod_one.models import *
 from app.mod_one.models import Course
 from app.mod_one.models import Document
